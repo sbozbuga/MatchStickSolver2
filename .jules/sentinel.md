@@ -1,0 +1,4 @@
+## 2025-02-18 - Unused Secret Configuration Exposure
+**Vulnerability:** The `vite.config.ts` file contained a hardcoded configuration to inject `GEMINI_API_KEY` from environment variables into the client-side bundle via `process.env`. While the key itself wasn't hardcoded in the file, the configuration meant that any developer following the README instructions to set this key would inadvertently expose it in the public client-side code.
+**Learning:** Boilerplate or legacy configuration often remains in projects, creating potential attack surfaces. In client-side applications (SPA), injecting environment variables makes them public.
+**Prevention:** Audit configuration files for unused environment variable injections. Ensure that only truly public variables (like feature flags or public API keys) are exposed to the client bundle. Remove dead code/config relentlessly.
