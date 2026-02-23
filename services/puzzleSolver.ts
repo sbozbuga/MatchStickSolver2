@@ -139,22 +139,23 @@ function mutateEquation(eq: string, moves: number): string | null {
     return newEq;
 }
 
+const PATTERN_TO_CHAR: Record<string, string> = {
+    '1110111': '0',
+    '0010010': '1',
+    '1011101': '2',
+    '1011011': '3',
+    '0111010': '4',
+    '1101011': '5',
+    '1101111': '6',
+    '1010010': '7',
+    '1111111': '8',
+    '1111011': '9',
+    '0101000': '+',
+    '0001000': '-'
+};
+
 function patternToChar(pattern: number[]): string | null {
     const pStr = pattern.join('');
-    const map: Record<string, string> = {
-        '1110111': '0',
-        '0010010': '1',
-        '1011101': '2',
-        '1011011': '3',
-        '0111010': '4',
-        '1101011': '5',
-        '1101111': '6',
-        '1010010': '7',
-        '1111111': '8',
-        '1111011': '9',
-        '0101000': '+',
-        '0001000': '-'
-    };
-    return map[pStr] || null;
+    return PATTERN_TO_CHAR[pStr] || null;
 }
 
