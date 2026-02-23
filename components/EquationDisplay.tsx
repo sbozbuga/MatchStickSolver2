@@ -2,8 +2,8 @@ import React, { useState, useLayoutEffect, useRef } from 'react';
 import { StickDisplay } from './StickDisplay';
 import { PlusSign } from './PlusSign';
 import { EqualsSign } from './EqualsSign';
-import { DIGITS, OPERATORS } from '@/constants';
-import type { SegmentPattern } from '@/types';
+import { DIGITS, OPERATORS } from '../constants';
+import type { SegmentPattern } from '../types';
 import { useLanguage } from '../i18n/LanguageContext';
 
 interface EquationDisplayProps {

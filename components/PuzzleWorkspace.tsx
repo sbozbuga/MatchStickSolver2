@@ -4,9 +4,9 @@ import { SolutionsList } from './SolutionsList';
 import { usePuzzleSolver } from '../hooks/usePuzzleSolver';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useAudio } from '../audio/AudioContext';
-import { getMoveHighlights, calculateCombinedRemovalMask } from '@/utils';
+import { getMoveHighlights, calculateCombinedRemovalMask } from '../utils';
 import { parseEquation, generatePuzzle } from '../services/puzzleSolver';
-import { RefreshCw, Play } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface PuzzleWorkspaceProps {
@@ -85,14 +85,6 @@ export const PuzzleWorkspace: React.FC<PuzzleWorkspaceProps> = ({ initialEquatio
                     highlightMask={finalHighlightMask}
                     highlightClass={hoveredSolution ? "stick-removing" : "stick-remove-static"}
                 />
-                <button
-                    onClick={triggerSolve}
-                    className="flex-none flex items-center justify-center bg-amber-500 hover:bg-amber-600 text-slate-900 px-4 py-3 rounded-md transition-colors min-h-[58px]"
-                    title={t('app.solveButton')}
-                    aria-label={t('app.solveButton')}
-                >
-                    <Play size={24} fill="currentColor" />
-                </button>
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                     <select 
                         value={moves}
