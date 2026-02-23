@@ -56,6 +56,7 @@ export const translations = {
     'app.solutions': 'Solutions:',
     'app.noSolutions': 'No solutions found.',
     'app.enterEquation': 'Enter an equation',
+    'app.clearInput': 'Clear input',
     'app.generatePuzzle': 'Generate Puzzle',
     'app.moves_one': '1 Move',
     'app.moves_other': '{count} Moves',
