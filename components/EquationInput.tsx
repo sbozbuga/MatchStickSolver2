@@ -3,6 +3,7 @@ import { EquationDisplay } from './EquationDisplay';
 import type { SegmentPattern } from '../types';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useAudio } from '../audio/AudioContext';
+import { X } from 'lucide-react';
 
 interface EquationInputProps {
     value: string;
@@ -16,7 +17,7 @@ interface EquationInputProps {
 const ALLOWED_CHARS = '0123456789+-=';
 
 export const EquationInput: React.FC<EquationInputProps> = ({ value, onChange, onSubmit, placeholder, highlightMask, highlightClass }) => {
-    const { direction } = useLanguage();
+    const { direction, t } = useLanguage();
     const { playKeyPress, playBackspace, playClear } = useAudio();
     const [animatedCharIndex, setAnimatedCharIndex] = useState<number | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -52,14 +53,16 @@ export const EquationInput: React.FC<EquationInputProps> = ({ value, onChange, o
         onChange('');
     };
 
-    const focusClasses = 'border-amber-500 ring ring-amber-500/50';
+    const focusClasses = isFocused ? 'border-amber-500 ring ring-amber-500/50' : 'border-slate-600';
+    const hasValue = value.length > 0;
+    const paddingClass = hasValue
+        ? (direction === 'rtl' ? 'pl-10 pr-3 py-3' : 'pr-10 pl-3 py-3')
+        : 'p-3';
 
     return (
         <div
-            ref={containerRef}
-            className={`w-full sm:w-auto flex-grow bg-slate-700 p-3 rounded-md border-2 ${focusClasses} transition flex items-center min-h-[58px] cursor-text`}
-            tabIndex={0}
-            onKeyDown={handleKeyDown}
+            className={`relative w-full sm:w-auto flex-grow bg-slate-700 ${paddingClass} rounded-md border-2 ${focusClasses} transition flex items-center min-h-[58px] cursor-text`}
+            onClick={() => inputRef.current?.focus()}
             onDoubleClick={handleDoubleClick}
             aria-label="Equation input"
         >
@@ -75,6 +78,21 @@ export const EquationInput: React.FC<EquationInputProps> = ({ value, onChange, o
                     aria-hidden="true"
                 />
             </div>
+            {hasValue && (
+                <button
+                    className={`absolute ${direction === 'rtl' ? 'left-2' : 'right-2'} top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-white rounded-full hover:bg-slate-600 transition-colors z-10`}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onChange('');
+                        playClear();
+                        inputRef.current?.focus();
+                    }}
+                    aria-label={t('app.clearInput')}
+                    type="button"
+                >
+                    <X size={16} />
+                </button>
+            )}
         </div>
     );
 };

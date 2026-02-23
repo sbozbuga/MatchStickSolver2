@@ -51,6 +51,7 @@ export const translations = {
     'app.title': 'Matchstick Puzzle Solver',
     'app.subtitle': 'Move matchsticks to fix the equation.',
     'app.inputPlaceholder': 'e.g. 6+4=4',
+    'app.clearInput': 'Clear input',
     'app.solveButton': 'Solve',
     'app.solutionsFound': 'Solution(s) Found:',
     'app.solutions': 'Solutions:',
