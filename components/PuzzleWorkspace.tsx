@@ -4,7 +4,7 @@ import { SolutionsList } from './SolutionsList';
 import { usePuzzleSolver } from '../hooks/usePuzzleSolver';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useAudio } from '../audio/AudioContext';
-import { getMoveHighlights, calculateCombinedRemovalMask } from '../utils';
+import { getMoveHighlights, calculateCombinedRemovalMask } from '@/utils';
 import { parseEquation, generatePuzzle } from '../services/puzzleSolver';
 import { RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';

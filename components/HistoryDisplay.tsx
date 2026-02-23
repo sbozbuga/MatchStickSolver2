@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { HistoryEntry } from '../types';
+import type { HistoryEntry } from '@/types';
 import { useLanguage } from '../i18n/LanguageContext';
 
 interface HistoryDisplayProps {
