@@ -28,17 +28,3 @@ export const OPERATORS: { [key: string]: SegmentPattern } = {
 };
 
 export const EQUALS_SIGN: SegmentPattern = [1, 0, 0, 0, 0, 0, 1]; // Top and bottom bars for a clearer equals sign
-
-// Helper to convert array pattern to bitmask
-const patternToMask = (pattern: SegmentPattern): number =>
-    pattern.reduce((acc, val, idx) => acc | (val << idx), 0);
-
-export const DIGIT_MASKS: { [key: number]: number } = Object.fromEntries(
-    Object.entries(DIGITS).map(([k, v]) => [k, patternToMask(v)])
-);
-
-export const OPERATOR_MASKS: { [key: string]: number } = Object.fromEntries(
-    Object.entries(OPERATORS).map(([k, v]) => [k, patternToMask(v)])
-);
-
-export const EQUALS_SIGN_MASK: number = patternToMask(EQUALS_SIGN);

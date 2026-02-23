@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { EquationDisplay } from './EquationDisplay';
-import { getMoveHighlights } from '@/utils';
+import { getMoveHighlights } from '../utils';
 import { motion } from 'motion/react';
 
 interface SolutionsListProps {

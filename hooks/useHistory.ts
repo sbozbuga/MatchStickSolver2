@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { HistoryEntry } from '@/types';
+import type { HistoryEntry } from '../types';
 
 export function useHistory() {
     const [history, setHistory] = useState<HistoryEntry[]>(() => {

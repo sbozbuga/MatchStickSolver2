@@ -1,5 +1,5 @@
 import React from 'react';
-import type { SegmentPattern } from '@/types';
+import type { SegmentPattern } from '../types';
 
 interface StickDisplayProps {
     pattern: SegmentPattern;

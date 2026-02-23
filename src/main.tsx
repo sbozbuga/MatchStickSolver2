@@ -1,8 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import { LanguageProvider } from '../i18n/LanguageContext';
-import { AudioProvider } from '../audio/AudioContext';
+import { LanguageProvider } from './i18n/LanguageContext';
+import { AudioProvider } from './audio/AudioContext';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
