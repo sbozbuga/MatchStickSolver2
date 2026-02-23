@@ -1,6 +1,5 @@
 import type { ParsedEquation, Operator } from '@/types';
 import { getPattern } from '@/utils';
-import { DIGIT_MASKS, OPERATOR_MASKS, EQUALS_SIGN_MASK } from '@/constants';
 
 export function parseEquation(eq: string): ParsedEquation | null {
     const clean = eq.replace(/\s/g, '');
