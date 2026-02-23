@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { EquationDisplay } from './EquationDisplay';
-import type { SegmentPattern } from '../types';
+import type { SegmentPattern } from '@/types';
 import { useLanguage } from '../i18n/LanguageContext';
 import { useAudio } from '../audio/AudioContext';
 
@@ -29,10 +29,10 @@ export const EquationInput: React.FC<EquationInputProps> = ({ value, onChange, o
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newValue = e.target.value;
-        
+
         // Only allow valid characters
         const filteredValue = newValue.split('').filter(char => ALLOWED_CHARS.includes(char)).join('');
-        
+
         if (filteredValue !== value) {
             if (filteredValue.length > value.length) {
                 playKeyPress();
@@ -93,7 +93,7 @@ export const EquationInput: React.FC<EquationInputProps> = ({ value, onChange, o
                     highlightClass={highlightClass}
                 />
                 {isFocused && (
-                    <div 
+                    <div
                         className={`bg-amber-400 w-0.5 h-10 blinking-cursor ${direction === 'rtl' ? 'me-2' : 'ms-2'}`}
                         aria-hidden="true"
                     />

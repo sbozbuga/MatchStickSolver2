@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useLanguage } from './i18n/LanguageContext';
-import { LanguageSwitcher } from './components/LanguageSwitcher';
-import { AudioToggler } from './components/AudioToggler';
-import { HistoryDisplay } from './components/HistoryDisplay';
-import { useHistory } from './hooks/useHistory';
-import { PuzzleWorkspace } from './components/PuzzleWorkspace';
+import { useLanguage } from '../i18n/LanguageContext';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import { AudioToggler } from '../components/AudioToggler';
+import { HistoryDisplay } from '../components/HistoryDisplay';
+import { useHistory } from '../hooks/useHistory';
+import { PuzzleWorkspace } from '../components/PuzzleWorkspace';
 
 function App() {
     const { t, language, direction } = useLanguage();

@@ -1,5 +1,5 @@
-import type { ParsedEquation, Operator } from '../types';
-import { getPattern } from '../utils';
+import type { ParsedEquation, Operator } from '@/types';
+import { getPattern } from '@/utils';
 
 export function parseEquation(eq: string): ParsedEquation | null {
     const clean = eq.replace(/\s/g, '');
