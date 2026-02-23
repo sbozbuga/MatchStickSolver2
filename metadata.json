@@ -1,0 +1,5 @@
+{
+  "name": "Matchstick Puzzle Solver",
+  "description": "An interactive web application that solves classic matchstick equation puzzles. Enter an incorrect equation, and the app will find all possible solutions by moving just one matchstick.",
+  "requestFramePermissions": []
+}
