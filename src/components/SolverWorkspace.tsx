@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { DIGITS, OPERATORS, EQUALS_SIGN } from '../constants';
 import type { SegmentPattern } from '../types';
+import { safeEvaluate } from '../utils';
 
 const EqualsSign = ({ size }: { size: { width: number, height: number } }) => (
     <svg viewBox="0 0 50 80" style={size} className="stroke-current text-amber-400" strokeWidth="4" strokeLinecap="round">
@@ -56,10 +57,8 @@ const solveEquation = (equation: string): string[] => {
                                     try {
                                         const [left, right] = testEq.split('=');
                                         if (left && right) {
-                                            // eslint-disable-next-line no-eval
-                                            const leftVal = eval(left);
-                                            // eslint-disable-next-line no-eval
-                                            const rightVal = eval(right);
+                                            const leftVal = safeEvaluate(left);
+                                            const rightVal = safeEvaluate(right);
                                             if (leftVal === rightVal) {
                                                 solutions.add(testEq);
                                             }
