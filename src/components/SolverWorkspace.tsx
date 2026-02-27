@@ -185,22 +185,24 @@ export const SolverWorkspace: React.FC = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="flex gap-4 mb-12 max-w-xl mx-auto">
+                <label className="sr-only" htmlFor="equation-input">Equation</label>
                 <input
+                    id="equation-input"
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    className="flex-1 bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-2xl text-center text-slate-100 focus:outline-none focus:border-amber-500 font-mono tracking-widest"
+                    className="flex-1 bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-2xl text-center text-slate-100 focus:outline-none focus:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-slate-800 font-mono tracking-widest"
                     placeholder="e.g. 6+4=4"
                 />
                 <button
                     type="submit"
-                    className="px-8 py-3 bg-amber-500 text-slate-900 font-bold rounded-lg hover:bg-amber-400 transition text-lg"
+                    className="px-8 py-3 bg-amber-500 text-slate-900 font-bold rounded-lg hover:bg-amber-400 transition text-lg focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-slate-800"
                 >
                     Solve
                 </button>
             </form>
 
-            <div className="mt-8">
+            <div className="mt-8" role="status" aria-live="polite">
                 <div className="flex flex-col items-center mb-12">
                     <h3 className="text-xl font-bold text-slate-200 mb-6 text-center">
                         Original Equation
