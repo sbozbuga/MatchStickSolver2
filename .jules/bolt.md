@@ -1,0 +1,3 @@
+## 2024-05-24 - [Replaced Array segment solver with bitmask approach]
+**Learning:** Re-computing arrays of 7 segments for every possible stick modification generates a significant amount of garbage collection overhead when looping through all permutations. Also using `eval` for simple integer arithmetic in a tight loop is remarkably slow.
+**Action:** Convert segment patterns into integers using bitmasks (1 for segment present, 0 for absent). Using bitwise operators allows for near-instant validation of valid character shapes when mapping transitions. Replacing `eval()` with a custom regex-split parser for integer expressions (`safeEvaluate`) yielded a massive speed boost, taking operations from ~2.7s down to ~110ms for 5000 iterations.
