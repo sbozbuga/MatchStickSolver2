@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { DIGITS, OPERATORS, EQUALS_SIGN } from '../constants';
+import { safeEvaluate } from '../utils';
 import type { SegmentPattern } from '../types';
 import { safeEvaluate } from '../utils';
 
