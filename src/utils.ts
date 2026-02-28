@@ -100,3 +100,39 @@ export function calculateCombinedRemovalMask(equation: string, solutions: string
 
     return baseMask;
 }
+
+/**
+ * Safely evaluates simple math expressions containing integers, +, and -.
+ * Returns null if the expression is invalid.
+ */
+export function safeEvaluate(expr: string): number | null {
+    if (!expr) return null;
+
+    // Split by operators, keeping the operators in the array
+    const parts = expr.split(/([+-])/);
+    if (parts.length === 0) return null;
+
+    let result = parseInt(parts[0], 10);
+    if (isNaN(result)) return null;
+
+    for (let i = 1; i < parts.length; i += 2) {
+        const op = parts[i];
+        const valStr = parts[i + 1];
+
+        // Handle trailing operators or missing values
+        if (valStr === undefined || valStr === '') return null;
+
+        const val = parseInt(valStr, 10);
+        if (isNaN(val)) return null;
+
+        if (op === '+') {
+            result += val;
+        } else if (op === '-') {
+            result -= val;
+        } else {
+            return null; // Unsupported operator
+        }
+    }
+
+    return result;
+}

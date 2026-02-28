@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { DIGITS, OPERATORS, EQUALS_SIGN } from '../constants';
+import { safeEvaluate } from '../utils';
 import type { SegmentPattern } from '../types';
 import { safeEvaluate } from '../utils';
 
@@ -186,6 +187,7 @@ export const SolverWorkspace: React.FC = () => {
             <form onSubmit={handleSubmit} className="flex gap-4 mb-12 max-w-xl mx-auto">
                 <input
                     type="text"
+                    aria-label="Equation to solve"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     className="flex-1 bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-2xl text-center text-slate-100 focus:outline-none focus:border-amber-500 font-mono tracking-widest"
@@ -193,7 +195,7 @@ export const SolverWorkspace: React.FC = () => {
                 />
                 <button
                     type="submit"
-                    className="px-8 py-3 bg-amber-500 text-slate-900 font-bold rounded-lg hover:bg-amber-400 transition text-lg"
+                    className="px-8 py-3 bg-amber-500 text-slate-900 font-bold rounded-lg hover:bg-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 transition text-lg"
                 >
                     Solve
                 </button>
