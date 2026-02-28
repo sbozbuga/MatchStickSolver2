@@ -1,0 +1,3 @@
+## 2025-05-21 - [Global Focus States]
+**Learning:** This app heavily relies on dark mode and custom colors, often obscuring standard browser focus rings. Custom focus-visible styles are critical for keyboard navigation, especially for main call-to-action buttons.
+**Action:** Always verify focus visibility on dark backgrounds when adding interactive elements. Use `focus-visible:ring-offset-slate-800` to create contrast against the dark background.
