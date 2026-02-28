@@ -62,3 +62,61 @@ export function calculateCombinedRemovalMask(equation: string, solutions: string
 
     return baseMask;
 }
+
+/**
+ * Safely evaluates a mathematical expression string.
+ * Supports basic arithmetic (+, -) and integer numbers.
+ * Throws an error for invalid input or unsafe characters.
+ */
+export function safeEvaluate(expression: string): number {
+    // Remove whitespace
+    const cleanExpr = expression.replace(/\s+/g, '');
+
+    // Validate characters: only digits, +, - are allowed
+    if (!/^[0-9+\-]+$/.test(cleanExpr)) {
+        throw new Error('Invalid characters in expression');
+    }
+
+    // Evaluate the expression manually
+    // Split by operators but keep them to process
+    // Actually, a simpler approach for + and - is to split by the operators and sum/subtract
+
+    // We can use a regex to match numbers and their preceding sign (if any)
+    // But since the first number might not have a sign, we handle that.
+
+    // Check for double operators or ending with operator which are invalid in this simple parser
+    if (/[\+\-]{2,}/.test(cleanExpr) || /[\+\-]$/.test(cleanExpr) || /^[\+\-]/.test(cleanExpr)) {
+         // The matchstick puzzles don't usually start with negative numbers, so we can be strict.
+         // However, if "0-4=-4" is a valid puzzle state (even if wrong), we might need to support negative results.
+         // But `eval("6+4")` works. `eval("-5+2")` works.
+         // Let's stick to what's needed for "6+4=4" style puzzles.
+         // If the user forms "-5", that's a valid intermediate state?
+         // The puzzle logic `eval(left)` might get called on "9-".
+         // `eval("9-")` throws SyntaxError. So we should throw too.
+         throw new Error('Invalid expression format');
+    }
+
+    // Tokenize: split into numbers and operators
+    const tokens = cleanExpr.split(/([+\-])/).filter(t => t.length > 0);
+
+    if (tokens.length === 0) return 0;
+
+    let result = parseInt(tokens[0], 10);
+
+    for (let i = 1; i < tokens.length; i += 2) {
+        const operator = tokens[i];
+        const nextVal = parseInt(tokens[i + 1], 10);
+
+        if (isNaN(nextVal)) {
+             throw new Error('Invalid number');
+        }
+
+        if (operator === '+') {
+            result += nextVal;
+        } else if (operator === '-') {
+            result -= nextVal;
+        }
+    }
+
+    return result;
+}
