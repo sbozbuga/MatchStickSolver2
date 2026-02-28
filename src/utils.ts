@@ -43,43 +43,7 @@ export function getMoveHighlights(originalEq: string, modifiedEq: string): Solut
     return { removalPatterns, additionPatterns };
 }
 
-export function safeEvaluate(expression: string): number {
-    // Basic validation to only allow digits, plus, minus, and whitespace
-    if (!/^[0-9+\-\s]+$/.test(expression)) {
-        throw new Error('Invalid characters in expression');
-    }
 
-    // Tokenize the string (e.g. "12 + 3 - 4" -> ["12", "+", "3", "-", "4"])
-    const tokens = expression.match(/\d+|[+-]/g);
-    if (!tokens || tokens.length === 0) {
-        throw new Error('Invalid expression format');
-    }
-
-    // Start with the first number
-    let result = parseInt(tokens[0], 10);
-
-    // Evaluate left-to-right
-    for (let i = 1; i < tokens.length; i += 2) {
-        const operator = tokens[i];
-        const nextNumberStr = tokens[i + 1];
-
-        if (nextNumberStr === undefined) {
-             throw new Error('Missing operand');
-        }
-
-        const nextNumber = parseInt(nextNumberStr, 10);
-
-        if (operator === '+') {
-            result += nextNumber;
-        } else if (operator === '-') {
-            result -= nextNumber;
-        } else {
-             throw new Error(`Invalid operator: ${operator}`);
-        }
-    }
-
-    return result;
-}
 
 export function calculateCombinedRemovalMask(equation: string, solutions: string[]): SegmentPattern[] | undefined {
     if (!solutions?.length || !equation) return undefined;
@@ -106,7 +70,12 @@ export function calculateCombinedRemovalMask(equation: string, solutions: string
  * Returns null if the expression is invalid.
  */
 export function safeEvaluate(expr: string): number | null {
-    if (!expr) return null;
+    if (!expr || expr.length > 50) return null;
+
+    // Basic validation to only allow digits, plus, minus, and whitespace
+    if (!/^[0-9+\-\s]+$/.test(expr)) {
+        return null;
+    }
 
     // Split by operators, keeping the operators in the array
     const parts = expr.split(/([+-])/);

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { DIGITS, OPERATORS, EQUALS_SIGN } from '../constants';
 import { safeEvaluate } from '../utils';
 import type { SegmentPattern } from '../types';
-import { safeEvaluate } from '../utils';
 
 const EqualsSign = ({ size }: { size: { width: number, height: number } }) => (
     <svg viewBox="0 0 50 80" style={size} className="stroke-current text-amber-400" strokeWidth="4" strokeLinecap="round">
@@ -95,7 +94,7 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
             if (left && right) {
                 const leftVal = safeEvaluate(left);
                 const rightVal = safeEvaluate(right);
-                if (leftVal === rightVal && currentEq !== originalEquation) {
+                if (leftVal !== null && rightVal !== null && leftVal === rightVal && currentEq !== originalEquation) {
                     setIsSolved(true);
                     if (onSolveSuccess) onSolveSuccess();
                 } else {
