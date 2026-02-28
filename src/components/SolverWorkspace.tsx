@@ -1,8 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { DIGITS, OPERATORS, EQUALS_SIGN } from '../constants';
-import { safeEvaluate } from '../utils';
 import type { SegmentPattern } from '../types';
-import { safeEvaluate } from '../utils';
+import { solveEquation } from '../solver';
 
 const EqualsSign = ({ size }: { size: { width: number, height: number } }) => (
     <svg viewBox="0 0 50 80" style={size} className="stroke-current text-amber-400" strokeWidth="4" strokeLinecap="round">
@@ -32,54 +31,7 @@ const patternToChar = (pattern: SegmentPattern, originalChar: string): string | 
     return null;
 };
 
-const solveEquation = (equation: string): string[] => {
-    const chars = equation.replace(/\s/g, '').split('');
-    const patterns = chars.map(charToPattern);
-    const solutions = new Set<string>();
-
-    for (let i = 0; i < patterns.length; i++) {
-        for (let j = 0; j < 7; j++) {
-            if (patterns[i][j] === 1) {
-                // Try removing stick from i, j
-                const newPatterns = patterns.map(p => [...p]);
-                newPatterns[i][j] = 0;
-
-                for (let k = 0; k < newPatterns.length; k++) {
-                    for (let l = 0; l < 7; l++) {
-                        if (newPatterns[k][l] === 0) {
-                            // Try adding stick to k, l
-                            const testPatterns = newPatterns.map(p => [...p]);
-                            testPatterns[k][l] = 1;
-
-                            const testChars = testPatterns.map((p, idx) => patternToChar(p as SegmentPattern, chars[idx]));
-                            if (!testChars.includes(null)) {
-                                const testEq = testChars.join('');
-                                if (testEq !== equation) {
-                                    try {
-                                        const [left, right] = testEq.split('=');
-                                        if (left && right) {
-                                            const leftVal = safeEvaluate(left);
-                                            const rightVal = safeEvaluate(right);
-                                            if (leftVal === rightVal) {
-                                                solutions.add(testEq);
-                                            }
-                                        }
-                                    } catch (e) {
-                                        // Ignore invalid equations
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    return Array.from(solutions);
-};
-
-const StaticEquation: React.FC<{ equation: string, originalEquation?: string }> = ({ equation, originalEquation }) => {
+const StaticEquation: React.FC<{ equation: string, originalEquation?: string }> = React.memo(({ equation, originalEquation }) => {
     const chars = equation.replace(/\s/g, '').split('');
     const originalChars = originalEquation ? originalEquation.replace(/\s/g, '').split('') : chars;
     
@@ -162,7 +114,7 @@ const StaticEquation: React.FC<{ equation: string, originalEquation?: string }> 
             ))}
         </div>
     );
-};
+});
 
 export const SolverWorkspace: React.FC = () => {
     const [input, setInput] = useState('6+4=4');
