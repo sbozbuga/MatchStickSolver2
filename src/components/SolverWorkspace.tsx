@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { DIGITS, OPERATORS, EQUALS_SIGN } from '../constants';
 import { safeEvaluate } from '../utils';
 import type { SegmentPattern } from '../types';
+import { solveEquation } from '../solver';
 
 const EqualsSign = ({ size }: { size: { width: number, height: number } }) => (
     <svg viewBox="0 0 50 80" style={size} className="stroke-current text-amber-400" strokeWidth="4" strokeLinecap="round">
