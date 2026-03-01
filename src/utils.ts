@@ -43,8 +43,6 @@ export function getMoveHighlights(originalEq: string, modifiedEq: string): Solut
     return { removalPatterns, additionPatterns };
 }
 
-
-
 export function calculateCombinedRemovalMask(equation: string, solutions: string[]): SegmentPattern[] | undefined {
     if (!solutions?.length || !equation) return undefined;
 
