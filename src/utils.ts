@@ -69,7 +69,12 @@ export function calculateCombinedRemovalMask(equation: string, solutions: string
  * Returns null if the expression is invalid.
  */
 export function safeEvaluate(expr: string): number | null {
-    if (!expr) return null;
+    if (!expr || expr.length > 50) return null;
+
+    // Basic validation to only allow digits, plus, minus, and whitespace
+    if (!/^[0-9+\-\s]+$/.test(expr)) {
+        return null;
+    }
 
     // Split by operators, keeping the operators in the array
     const parts = expr.split(/([+-])/);

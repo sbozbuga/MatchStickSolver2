@@ -59,7 +59,7 @@ const solveEquation = (equation: string): string[] => {
                                         if (left && right) {
                                             const leftVal = safeEvaluate(left);
                                             const rightVal = safeEvaluate(right);
-                                            if (leftVal === rightVal) {
+                                            if (leftVal !== null && rightVal !== null && leftVal === rightVal) {
                                                 solutions.add(testEq);
                                             }
                                         }

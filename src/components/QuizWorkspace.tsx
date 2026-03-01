@@ -94,7 +94,7 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
             if (left && right) {
                 const leftVal = safeEvaluate(left);
                 const rightVal = safeEvaluate(right);
-                if (leftVal === rightVal && currentEq !== originalEquation) {
+                if (leftVal !== null && rightVal !== null && leftVal === rightVal && currentEq !== originalEquation) {
                     setIsSolved(true);
                     if (onSolveSuccess) onSolveSuccess();
                 } else {
