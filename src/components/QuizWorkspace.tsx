@@ -327,7 +327,7 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
                         <span className="text-3xl font-bold text-emerald-400 animate-bounce">Correct! Well done!</span>
                         <button 
                             onClick={handleNextPuzzle}
-                            className="px-8 py-3 bg-amber-500 text-slate-900 font-bold rounded-lg hover:bg-amber-400 transition text-lg"
+                            className="px-8 py-3 bg-amber-500 text-slate-900 font-bold rounded-lg hover:bg-amber-400 transition text-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-slate-800"
                         >
                             Next Puzzle
                         </button>
@@ -335,7 +335,7 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
                 ) : (
                     <button 
                         onClick={handleReset}
-                        className="px-6 py-2 bg-slate-700 text-slate-300 font-medium rounded-lg hover:bg-slate-600 transition"
+                        className="px-6 py-2 bg-slate-700 text-slate-300 font-medium rounded-lg hover:bg-slate-600 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-slate-800"
                     >
                         Reset Puzzle
                     </button>
