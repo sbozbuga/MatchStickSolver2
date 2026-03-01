@@ -19,13 +19,13 @@ function App() {
                     <div className="mt-6 flex justify-center gap-4">
                         <button 
                             onClick={() => setMode('quiz')}
-                            className={`px-6 py-2 rounded-full font-medium transition focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-slate-800 ${mode === 'quiz' ? 'bg-amber-500 text-slate-900' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
+                            className={`px-6 py-2 rounded-full font-medium transition ${mode === 'quiz' ? 'bg-amber-500 text-slate-900' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
                         >
                             Quiz Mode
                         </button>
                         <button 
                             onClick={() => setMode('solver')}
-                            className={`px-6 py-2 rounded-full font-medium transition focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-slate-800 ${mode === 'solver' ? 'bg-amber-500 text-slate-900' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
+                            className={`px-6 py-2 rounded-full font-medium transition ${mode === 'solver' ? 'bg-amber-500 text-slate-900' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
                         >
                             Solver Mode
                         </button>

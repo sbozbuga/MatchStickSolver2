@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { DIGITS, OPERATORS, EQUALS_SIGN } from '../constants';
-import { safeEvaluate } from '../utils';
 import type { SegmentPattern } from '../types';
 
 const EqualsSign = ({ size }: { size: { width: number, height: number } }) => (
@@ -18,108 +17,6 @@ const charToPattern = (char: string): SegmentPattern => {
     if (char === '=') return [...EQUALS_SIGN];
     return [0, 0, 0, 0, 0, 0, 0];
 };
-
-interface InteractiveCharProps {
-    charIndex: number;
-    pattern: SegmentPattern;
-    char: string;
-    hoverTarget: { charIndex: number, segmentIndex: number } | null;
-    onPointerDown: (charIndex: number, segmentIndex: number, e: React.PointerEvent) => void;
-}
-
-const InteractiveChar = React.memo(({ charIndex, pattern, char, hoverTarget, onPointerDown }: InteractiveCharProps) => {
-    const size = { width: 72, height: 115.2 };
-
-    if (char === '=') {
-        return <EqualsSign size={size} />;
-    }
-
-    // For + and -, we only render segments 1 and 3, using the centered plus sign coordinates
-    if (char === '+' || char === '-') {
-        return (
-            <svg viewBox="0 0 50 80" style={size} className="stroke-current text-amber-400" strokeWidth="4" strokeLinecap="round">
-                {[1, 3].map(segmentIndex => {
-                    const isActive = pattern[segmentIndex] === 1;
-                    const isHovered = hoverTarget?.charIndex === charIndex && hoverTarget?.segmentIndex === segmentIndex;
-
-                    let d = "";
-                    if (segmentIndex === 3) d = "M 15 40 H 35"; // Horizontal
-                    if (segmentIndex === 1) d = "M 25 30 V 50"; // Vertical
-
-                    const classes = [
-                        'transition-opacity cursor-pointer',
-                        isActive ? 'opacity-100' : 'opacity-10',
-                        isHovered ? 'text-amber-200 opacity-50' : ''
-                    ].filter(Boolean).join(' ');
-
-                    return (
-                        <g key={segmentIndex}>
-                            <path
-                                d={d}
-                                stroke="transparent"
-                                strokeWidth="24"
-                                onPointerDown={(e) => onPointerDown(charIndex, segmentIndex, e as any)}
-                                data-char-index={charIndex}
-                                data-segment-index={segmentIndex}
-                                style={{ pointerEvents: 'auto' }}
-                            />
-                            <path
-                                d={d}
-                                className={classes}
-                                style={{ pointerEvents: 'none' }}
-                            />
-                        </g>
-                    );
-                })}
-            </svg>
-        );
-    }
-
-    // Standard 7-segment display for digits
-    const segments = [
-        { key: 'top', d: "M 10 10 H 40" },
-        { key: 'top-left', d: "M 10 10 V 40" },
-        { key: 'top-right', d: "M 40 10 V 40" },
-        { key: 'middle', d: "M 10 40 H 40" },
-        { key: 'bot-left', d: "M 10 40 V 70" },
-        { key: 'bot-right', d: "M 40 40 V 70" },
-        { key: 'bottom', d: "M 10 70 H 40" },
-    ];
-
-    return (
-        <svg viewBox="0 0 50 80" style={size} className="stroke-current text-amber-400" strokeWidth="4" strokeLinecap="round">
-            {segments.map((seg, segmentIndex) => {
-                const isActive = pattern[segmentIndex] === 1;
-                const isHovered = hoverTarget?.charIndex === charIndex && hoverTarget?.segmentIndex === segmentIndex;
-
-                const classes = [
-                    'transition-opacity cursor-pointer',
-                    isActive ? 'opacity-100' : 'opacity-10',
-                    isHovered ? 'text-amber-200 opacity-50' : ''
-                ].filter(Boolean).join(' ');
-
-                return (
-                    <g key={seg.key}>
-                        <path
-                            d={seg.d}
-                            stroke="transparent"
-                            strokeWidth="24"
-                            onPointerDown={(e) => onPointerDown(charIndex, segmentIndex, e as any)}
-                            data-char-index={charIndex}
-                            data-segment-index={segmentIndex}
-                            style={{ pointerEvents: 'auto' }}
-                        />
-                        <path
-                            d={seg.d}
-                            className={classes}
-                            style={{ pointerEvents: 'none' }}
-                        />
-                    </g>
-                );
-            })}
-        </svg>
-    );
-});
 
 // Helper to convert pattern to char
 const patternToChar = (pattern: SegmentPattern, originalChar: string): string | null => {
@@ -194,9 +91,11 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
         try {
             const [left, right] = currentEq.split('=');
             if (left && right) {
-                const leftVal = safeEvaluate(left);
-                const rightVal = safeEvaluate(right);
-                if (leftVal !== null && rightVal !== null && leftVal === rightVal && currentEq !== originalEquation) {
+                // eslint-disable-next-line no-eval
+                const leftVal = eval(left);
+                // eslint-disable-next-line no-eval
+                const rightVal = eval(right);
+                if (leftVal === rightVal && currentEq !== originalEquation) {
                     setIsSolved(true);
                     if (onSolveSuccess) onSolveSuccess();
                 } else {
@@ -208,7 +107,7 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
         }
     }, [patterns, originalEquation, onSolveSuccess]);
 
-    const handlePointerDown = useCallback((charIndex: number, segmentIndex: number, e: React.PointerEvent) => {
+    const handlePointerDown = (charIndex: number, segmentIndex: number, e: React.PointerEvent) => {
         if (patterns[charIndex][segmentIndex] === 1 && !isSolved) {
             e.preventDefault();
             e.stopPropagation();
@@ -226,7 +125,7 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
                 return newPatterns;
             });
         }
-    }, [patterns, isSolved]);
+    };
 
     const handlePointerMove = useCallback((e: PointerEvent) => {
         if (!isDraggingRef.current) return;
@@ -299,6 +198,100 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
         setIsSolved(false);
     };
 
+    const renderInteractiveStickDisplay = (charIndex: number, pattern: SegmentPattern, char: string) => {
+        const size = { width: 72, height: 115.2 };
+        
+        if (char === '=') {
+            return <EqualsSign size={size} />;
+        }
+
+        // For + and -, we only render segments 1 and 3, using the centered plus sign coordinates
+        if (char === '+' || char === '-') {
+            return (
+                <svg viewBox="0 0 50 80" style={size} className="stroke-current text-amber-400" strokeWidth="4" strokeLinecap="round">
+                    {[1, 3].map(segmentIndex => {
+                        const isActive = pattern[segmentIndex] === 1;
+                        const isHovered = hoverTarget?.charIndex === charIndex && hoverTarget?.segmentIndex === segmentIndex;
+                        
+                        let d = "";
+                        if (segmentIndex === 3) d = "M 15 40 H 35"; // Horizontal
+                        if (segmentIndex === 1) d = "M 25 30 V 50"; // Vertical
+                        
+                        const classes = [
+                            'transition-opacity cursor-pointer',
+                            isActive ? 'opacity-100' : 'opacity-10',
+                            isHovered ? 'text-amber-200 opacity-50' : ''
+                        ].filter(Boolean).join(' ');
+
+                        return (
+                            <g key={segmentIndex}>
+                                <path 
+                                    d={d}
+                                    stroke="transparent"
+                                    strokeWidth="24"
+                                    onPointerDown={(e) => handlePointerDown(charIndex, segmentIndex, e)}
+                                    data-char-index={charIndex}
+                                    data-segment-index={segmentIndex}
+                                    style={{ pointerEvents: 'auto' }}
+                                />
+                                <path
+                                    d={d}
+                                    className={classes}
+                                    style={{ pointerEvents: 'none' }}
+                                />
+                            </g>
+                        );
+                    })}
+                </svg>
+            );
+        }
+
+        // Standard 7-segment display for digits
+        const segments = [
+            { key: 'top', d: "M 10 10 H 40" },
+            { key: 'top-left', d: "M 10 10 V 40" },
+            { key: 'top-right', d: "M 40 10 V 40" },
+            { key: 'middle', d: "M 10 40 H 40" },
+            { key: 'bot-left', d: "M 10 40 V 70" },
+            { key: 'bot-right', d: "M 40 40 V 70" },
+            { key: 'bottom', d: "M 10 70 H 40" },
+        ];
+
+        return (
+            <svg viewBox="0 0 50 80" style={size} className="stroke-current text-amber-400" strokeWidth="4" strokeLinecap="round">
+                {segments.map((seg, segmentIndex) => {
+                    const isActive = pattern[segmentIndex] === 1;
+                    const isHovered = hoverTarget?.charIndex === charIndex && hoverTarget?.segmentIndex === segmentIndex;
+                    
+                    const classes = [
+                        'transition-opacity cursor-pointer',
+                        isActive ? 'opacity-100' : 'opacity-10',
+                        isHovered ? 'text-amber-200 opacity-50' : ''
+                    ].filter(Boolean).join(' ');
+
+                    return (
+                        <g key={seg.key}>
+                            <path 
+                                d={seg.d}
+                                stroke="transparent"
+                                strokeWidth="24"
+                                onPointerDown={(e) => handlePointerDown(charIndex, segmentIndex, e)}
+                                data-char-index={charIndex}
+                                data-segment-index={segmentIndex}
+                                style={{ pointerEvents: 'auto' }}
+                            />
+                            <path
+                                d={seg.d}
+                                className={classes}
+                                style={{ pointerEvents: 'none' }}
+                            />
+                        </g>
+                    );
+                })}
+            </svg>
+        );
+    };
+
     return (
         <div className="w-full max-w-4xl mx-auto bg-slate-800 rounded-xl p-6 shadow-xl border border-slate-700" ref={containerRef}>
             <div className="text-center mb-6 flex justify-between items-center">
@@ -310,13 +303,7 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
             <div className="flex items-center justify-center gap-2 sm:gap-6 py-12 select-none touch-none overflow-x-auto">
                 {patterns.map((pattern, i) => (
                     <div key={i} className="flex-shrink-0">
-                        <InteractiveChar
-                            charIndex={i}
-                            pattern={pattern}
-                            char={originalEquation[i]}
-                            hoverTarget={hoverTarget}
-                            onPointerDown={handlePointerDown}
-                        />
+                        {renderInteractiveStickDisplay(i, pattern, originalEquation[i])}
                     </div>
                 ))}
             </div>
@@ -327,7 +314,7 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
                         <span className="text-3xl font-bold text-emerald-400 animate-bounce">Correct! Well done!</span>
                         <button 
                             onClick={handleNextPuzzle}
-                            className="px-8 py-3 bg-amber-500 text-slate-900 font-bold rounded-lg hover:bg-amber-400 transition text-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-slate-800"
+                            className="px-8 py-3 bg-amber-500 text-slate-900 font-bold rounded-lg hover:bg-amber-400 transition text-lg"
                         >
                             Next Puzzle
                         </button>
@@ -335,7 +322,7 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
                 ) : (
                     <button 
                         onClick={handleReset}
-                        className="px-6 py-2 bg-slate-700 text-slate-300 font-medium rounded-lg hover:bg-slate-600 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-slate-800"
+                        className="px-6 py-2 bg-slate-700 text-slate-300 font-medium rounded-lg hover:bg-slate-600 transition"
                     >
                         Reset Puzzle
                     </button>

@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { DIGITS, OPERATORS, EQUALS_SIGN } from '../constants';
 import type { SegmentPattern } from '../types';
-import { solveEquation } from '../solver';
 
 const EqualsSign = ({ size }: { size: { width: number, height: number } }) => (
     <svg viewBox="0 0 50 80" style={size} className="stroke-current text-amber-400" strokeWidth="4" strokeLinecap="round">
@@ -31,7 +30,56 @@ const patternToChar = (pattern: SegmentPattern, originalChar: string): string | 
     return null;
 };
 
-const StaticEquation: React.FC<{ equation: string, originalEquation?: string }> = React.memo(({ equation, originalEquation }) => {
+const solveEquation = (equation: string): string[] => {
+    const chars = equation.replace(/\s/g, '').split('');
+    const patterns = chars.map(charToPattern);
+    const solutions = new Set<string>();
+
+    for (let i = 0; i < patterns.length; i++) {
+        for (let j = 0; j < 7; j++) {
+            if (patterns[i][j] === 1) {
+                // Try removing stick from i, j
+                const newPatterns = patterns.map(p => [...p]);
+                newPatterns[i][j] = 0;
+
+                for (let k = 0; k < newPatterns.length; k++) {
+                    for (let l = 0; l < 7; l++) {
+                        if (newPatterns[k][l] === 0) {
+                            // Try adding stick to k, l
+                            const testPatterns = newPatterns.map(p => [...p]);
+                            testPatterns[k][l] = 1;
+
+                            const testChars = testPatterns.map((p, idx) => patternToChar(p as SegmentPattern, chars[idx]));
+                            if (!testChars.includes(null)) {
+                                const testEq = testChars.join('');
+                                if (testEq !== equation) {
+                                    try {
+                                        const [left, right] = testEq.split('=');
+                                        if (left && right) {
+                                            // eslint-disable-next-line no-eval
+                                            const leftVal = eval(left);
+                                            // eslint-disable-next-line no-eval
+                                            const rightVal = eval(right);
+                                            if (leftVal === rightVal) {
+                                                solutions.add(testEq);
+                                            }
+                                        }
+                                    } catch (e) {
+                                        // Ignore invalid equations
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return Array.from(solutions);
+};
+
+const StaticEquation: React.FC<{ equation: string, originalEquation?: string }> = ({ equation, originalEquation }) => {
     const chars = equation.replace(/\s/g, '').split('');
     const originalChars = originalEquation ? originalEquation.replace(/\s/g, '').split('') : chars;
     
@@ -114,7 +162,7 @@ const StaticEquation: React.FC<{ equation: string, originalEquation?: string }> 
             ))}
         </div>
     );
-});
+};
 
 export const SolverWorkspace: React.FC = () => {
     const [input, setInput] = useState('6+4=4');
@@ -137,25 +185,22 @@ export const SolverWorkspace: React.FC = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="flex gap-4 mb-12 max-w-xl mx-auto">
-                <label className="sr-only" htmlFor="equation-input">Equation</label>
                 <input
-                    id="equation-input"
                     type="text"
-                    aria-label="Equation to solve"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    className="flex-1 bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-2xl text-center text-slate-100 focus:outline-none focus:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-slate-800 font-mono tracking-widest"
+                    className="flex-1 bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-2xl text-center text-slate-100 focus:outline-none focus:border-amber-500 font-mono tracking-widest"
                     placeholder="e.g. 6+4=4"
                 />
                 <button
                     type="submit"
-                    className="px-8 py-3 bg-amber-500 text-slate-900 font-bold rounded-lg hover:bg-amber-400 transition text-lg focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-slate-800"
+                    className="px-8 py-3 bg-amber-500 text-slate-900 font-bold rounded-lg hover:bg-amber-400 transition text-lg"
                 >
                     Solve
                 </button>
             </form>
 
-            <div className="mt-8" role="status" aria-live="polite">
+            <div className="mt-8">
                 <div className="flex flex-col items-center mb-12">
                     <h3 className="text-xl font-bold text-slate-200 mb-6 text-center">
                         Original Equation
