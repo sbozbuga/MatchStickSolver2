@@ -119,6 +119,7 @@ export const SolverWorkspace: React.FC = () => {
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
+                    maxLength={20} // Security: Defense in depth against malicious long inputs
                     className="flex-1 bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-2xl text-center text-slate-100 focus:outline-none focus:border-amber-500 font-mono tracking-widest"
                     placeholder="e.g. 6+4=4"
                 />

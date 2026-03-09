@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Copy } from 'lucide-react';
+import { Copy, Check } from 'lucide-react';
 import type { SegmentPattern } from '../types';
 import { EqualsSign } from './EqualsSign';
 import { getPattern, patternToChar, evaluateExpression, generateRandomPuzzle } from '../utils';
@@ -17,6 +17,7 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
     const [hoverTarget, setHoverTarget] = useState<{ charIndex: number, segmentIndex: number } | null>(null);
     const [isSolved, setIsSolved] = useState(false);
     const [isFailed, setIsFailed] = useState(false);
+    const [isCopied, setIsCopied] = useState(false);
     const [initialSticksCount, setInitialSticksCount] = useState(0);
 
     // Refs for touch tracking
@@ -247,7 +248,28 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
     };
 
     const handleCopyEquation = () => {
-        navigator.clipboard.writeText(originalEquation);
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(originalEquation);
+        } else {
+            // Fallback for insecure HTTP contexts
+            const textArea = document.createElement("textarea");
+            textArea.value = originalEquation;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            textArea.style.top = "-999999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+            } catch (err) {
+                console.error('Fallback copy failed', err);
+            }
+            document.body.removeChild(textArea);
+        }
+
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
     };
 
     const renderInteractiveStickDisplay = (charIndex: number, pattern: SegmentPattern, char: string) => {
@@ -385,11 +407,14 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
                     <div className="flex gap-4">
                         <button
                             onClick={handleCopyEquation}
-                            className="px-6 py-2 bg-slate-700 text-slate-300 font-medium rounded-lg hover:bg-slate-600 border border-slate-600 transition flex items-center gap-2"
+                            className={`px-6 py-2 font-medium rounded-lg border transition flex items-center gap-2 ${isCopied
+                                    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50'
+                                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border-slate-600'
+                                }`}
                             title="Copy Original Equation"
                         >
-                            <Copy size={18} />
-                            Copy
+                            {isCopied ? <Check size={18} /> : <Copy size={18} />}
+                            {isCopied ? 'Copied!' : 'Copy'}
                         </button>
                         <button
                             onClick={handleReset}

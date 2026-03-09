@@ -1,0 +1,4 @@
+## 2026-03-09 - Missing Input Constraints Triggering Client-Side CPU DoS
+**Vulnerability:** The application accepted unbounded character inputs directly into the `solveEquation` matrix engine. Due to the high cyclic complexity $O((7N)^2)$ of the backtracking algorithm, large unconstrained strings inherently exhaust memory natively and strictly lock the main thread, causing severe Denial of Service (browser freezing).
+**Learning:** Mathematical brute-forcer loops must always assume adversarial conditions from unsanitized free-text input forms. Complex looping mechanisms are highly vulnerable without input constraints acting as Defense-in-Depth layers naturally mitigating bad payloads entirely gracefully.
+**Prevention:** 1) Implemented physical `maxLength` restrictions cleanly directly into HTML inputs. 2) Hard-coded runtime length limits into `utils.ts` explicitly guaranteeing graceful native exit closures explicitly handling payload mutations safely securely.

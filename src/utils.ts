@@ -110,6 +110,9 @@ export function patternToChar(pattern: SegmentPattern, originalChar: string): st
 }
 
 export const solveEquation = (equation: string): string[] => {
+    // SECURITY: Limit input to prevent CPU exhaustion DoS (Client thread locking)
+    if (equation.length > 20) return [];
+
     const chars = equation.replace(/\s/g, '').split('');
     const patterns = chars.map(c => [...getPattern(c)] as SegmentPattern);
     const solutions = new Set<string>();
