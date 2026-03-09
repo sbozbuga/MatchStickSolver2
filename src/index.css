@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+/* Custom styles for the matchstick appearance and animations */
+@keyframes pulse-blue-add {
+
+    /* For newly added sticks */
+    0%,
+    100% {
+        stroke: #60a5fa;
+        /* blue-400 */
+        filter: drop-shadow(0 0 6px #60a5fa);
+    }
+
+    50% {
+        stroke: #93c5fd;
+        /* blue-300 */
+        filter: drop-shadow(0 0 10px #93c5fd);
+    }
+}
+
+@keyframes pulse-red-remove {
+
+    /* For sticks to be removed */
+    0%,
+    100% {
+        stroke: #f87171;
+        /* red-400 */
+        filter: drop-shadow(0 0 5px #f87171);
+    }
+
+    50% {
+        stroke: #fca5a5;
+        /* red-300 */
+        filter: drop-shadow(0 0 8px #fca5a5);
+    }
+}
+
+/* Static blue highlight for solved equations */
+.stick-highlight-static {
+    stroke: #3b82f6;
+    /* blue-500 */
+    filter: drop-shadow(0 0 4px #3b82f6);
+}
+
+/* NEW: Static red highlight for removable sticks */
+.stick-remove-static {
+    stroke: #f87171;
+    /* red-400 */
+    filter: drop-shadow(0 0 4px #f87171);
+}
+
+/* Animation for the stick being added in a solution, triggered on hover */
+.stick-adding {
+    animation: pulse-blue-add 1.5s infinite;
+}
+
+/* Animation for the stick being removed from the puzzle, triggered on hover */
+.stick-removing {
+    animation: pulse-red-remove 1.5s infinite;
+}
+
+/* Animation for drawing sticks in */
+@keyframes draw-in {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+.stick-draw-in path {
+    animation: draw-in 0.4s ease-out forwards;
+}
+
+/* Blinking cursor for custom input */
+@keyframes blink {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
+}
+
+.blinking-cursor {
+    animation: blink 1s step-end infinite;
+}
