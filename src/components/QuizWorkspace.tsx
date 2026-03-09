@@ -192,7 +192,7 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
                                 <path
                                     d={d}
                                     stroke="transparent"
-                                    strokeWidth="14"
+                                    strokeWidth="8"
                                     onPointerDown={(e) => handlePointerDown(charIndex, segmentIndex, e)}
                                     data-char-index={charIndex}
                                     data-segment-index={segmentIndex}
@@ -238,7 +238,7 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
                             <path
                                 d={seg.d}
                                 stroke="transparent"
-                                strokeWidth="24"
+                                strokeWidth="8"
                                 onPointerDown={(e) => handlePointerDown(charIndex, segmentIndex, e)}
                                 data-char-index={charIndex}
                                 data-segment-index={segmentIndex}
