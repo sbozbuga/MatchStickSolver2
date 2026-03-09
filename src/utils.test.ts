@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { calculateCombinedRemovalMask, getMoveHighlights, evaluateExpression } from './utils';
+import * as utils from './utils';
+import { calculateCombinedRemovalMask, getMoveHighlights, evaluateExpression, solveEquation } from './utils';
+import { vi } from 'vitest';
 
 describe('calculateCombinedRemovalMask', () => {
     it('returns undefined if solutions array is empty or undefined', () => {
@@ -101,5 +103,25 @@ describe('evaluateExpression', () => {
     it('returns null for consecutive or malformed operators', () => {
         expect(evaluateExpression('6++4')).toBeNull();
         expect(evaluateExpression('6*4')).toBeNull(); // * is not matched by our regex [\d+|[+-]], so it might ignore it, but parsing breaks
+    });
+});
+
+describe('solveEquation', () => {
+    it('does not crash when encountering malformed generated equations', () => {
+        // We will mock evaluateExpression locally or rely on malformed strings
+        // Since solveEquation imports and uses evaluateExpression, we can spy on it.
+        const spy = vi.spyOn(utils, 'evaluateExpression').mockImplementation(() => {
+            throw new Error('Test Error');
+        });
+
+        expect(() => solveEquation('====')).not.toThrow();
+        expect(solveEquation('====')).toEqual([]);
+
+        spy.mockRestore();
+    });
+
+    it('handles potential evaluation errors gracefully', () => {
+        expect(() => solveEquation('++++')).not.toThrow();
+        expect(solveEquation('++++')).toEqual([]);
     });
 });
