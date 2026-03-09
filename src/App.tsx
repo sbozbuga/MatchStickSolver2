@@ -15,15 +15,15 @@ function App() {
                     <p className="text-slate-400 mt-2 text-lg px-16 sm:px-20">
                         Drag 1 stick to fix the equation
                     </p>
-                    
+
                     <div className="mt-6 flex justify-center gap-4">
-                        <button 
+                        <button
                             onClick={() => setMode('quiz')}
                             className={`px-6 py-2 rounded-full font-medium transition ${mode === 'quiz' ? 'bg-amber-500 text-slate-900' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
                         >
                             Quiz Mode
                         </button>
-                        <button 
+                        <button
                             onClick={() => setMode('solver')}
                             className={`px-6 py-2 rounded-full font-medium transition ${mode === 'solver' ? 'bg-amber-500 text-slate-900' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
                         >
@@ -32,7 +32,12 @@ function App() {
                     </div>
                 </header>
 
-                {mode === 'quiz' ? <QuizWorkspace /> : <SolverWorkspace />}
+                <div style={{ display: mode === 'quiz' ? 'block' : 'none' }}>
+                    <QuizWorkspace />
+                </div>
+                <div style={{ display: mode === 'solver' ? 'block' : 'none' }}>
+                    <SolverWorkspace />
+                </div>
             </div>
         </div>
     );

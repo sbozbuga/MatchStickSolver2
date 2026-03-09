@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Copy } from 'lucide-react';
 import type { SegmentPattern } from '../types';
 import { EqualsSign } from './EqualsSign';
 import { getPattern, patternToChar, evaluateExpression, generateRandomPuzzle } from '../utils';
@@ -245,6 +246,10 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
         setIsFailed(false);
     };
 
+    const handleCopyEquation = () => {
+        navigator.clipboard.writeText(originalEquation);
+    };
+
     const renderInteractiveStickDisplay = (charIndex: number, pattern: SegmentPattern, char: string) => {
         const size = { width: 72, height: 115.2 };
 
@@ -377,12 +382,22 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
                         </button>
                     </>
                 ) : (
-                    <button
-                        onClick={handleReset}
-                        className="px-6 py-2 bg-slate-700 text-slate-300 font-medium rounded-lg hover:bg-slate-600 transition"
-                    >
-                        Reset Puzzle
-                    </button>
+                    <div className="flex gap-4">
+                        <button
+                            onClick={handleCopyEquation}
+                            className="px-6 py-2 bg-slate-700 text-slate-300 font-medium rounded-lg hover:bg-slate-600 border border-slate-600 transition flex items-center gap-2"
+                            title="Copy Original Equation"
+                        >
+                            <Copy size={18} />
+                            Copy
+                        </button>
+                        <button
+                            onClick={handleReset}
+                            className="px-6 py-2 bg-slate-700 text-slate-300 font-medium rounded-lg hover:bg-slate-600 transition"
+                        >
+                            Reset Puzzle
+                        </button>
+                    </div>
                 )}
             </div>
 

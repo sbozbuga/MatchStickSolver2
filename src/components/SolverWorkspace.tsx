@@ -1,14 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import type { SegmentPattern } from '../types';
 import { EqualsSign } from './EqualsSign';
-import { getPattern, patternToChar, solveEquation } from '../utils';
+import { getPattern, patternToChar, solveEquation, generateRandomPuzzle } from '../utils';
 
 const StaticEquation: React.FC<{ equation: string, originalEquation?: string }> = ({ equation, originalEquation }) => {
     const chars = equation.replace(/\s/g, '').split('');
     const originalChars = originalEquation ? originalEquation.replace(/\s/g, '').split('') : chars;
 
     const renderStickDisplay = (charIndex: number, char: string, originalChar: string) => {
-        const size = { width: 36, height: 57.6 };
+        const size = { width: 72, height: 115.2 };
         const pattern = getPattern(char);
         const originalPattern = getPattern(originalChar);
 
@@ -101,6 +101,12 @@ export const SolverWorkspace: React.FC = () => {
         setEquation(input);
     };
 
+    const handleRandomize = () => {
+        const randomEq = generateRandomPuzzle();
+        setInput(randomEq);
+        setEquation(randomEq);
+    };
+
     return (
         <div className="w-full max-w-4xl mx-auto bg-slate-800 rounded-xl p-6 shadow-xl border border-slate-700">
             <div className="text-center mb-6">
@@ -116,6 +122,13 @@ export const SolverWorkspace: React.FC = () => {
                     className="flex-1 bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-2xl text-center text-slate-100 focus:outline-none focus:border-amber-500 font-mono tracking-widest"
                     placeholder="e.g. 6+4=4"
                 />
+                <button
+                    type="button"
+                    onClick={handleRandomize}
+                    className="px-6 py-3 bg-slate-700 text-amber-500 font-bold rounded-lg hover:bg-slate-600 border border-slate-600 transition text-lg w-32"
+                >
+                    Random
+                </button>
                 <button
                     type="submit"
                     className="px-8 py-3 bg-amber-500 text-slate-900 font-bold rounded-lg hover:bg-amber-400 transition text-lg"
