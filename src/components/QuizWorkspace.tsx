@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import type { SegmentPattern } from '../types';
 import { EqualsSign } from './EqualsSign';
-import { getPattern, patternToChar } from '../utils';
+import { getPattern, patternToChar, evaluateExpression } from '../utils';
 
 const QUIZ_PUZZLES = [
     '6+4=4', // 0+4=4
@@ -57,11 +57,9 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
         try {
             const [left, right] = currentEq.split('=');
             if (left && right) {
-                // eslint-disable-next-line no-eval
-                const leftVal = eval(left);
-                // eslint-disable-next-line no-eval
-                const rightVal = eval(right);
-                if (leftVal === rightVal && currentEq !== originalEquation) {
+                const leftVal = evaluateExpression(left);
+                const rightVal = evaluateExpression(right);
+                if (leftVal !== null && rightVal !== null && leftVal === rightVal && currentEq !== originalEquation) {
                     setIsSolved(true);
                     if (onSolveSuccess) onSolveSuccess();
                 } else {

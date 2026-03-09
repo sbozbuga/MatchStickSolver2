@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import type { SegmentPattern } from '../types';
 import { EqualsSign } from './EqualsSign';
-import { getPattern, patternToChar } from '../utils';
+import { getPattern, patternToChar, evaluateExpression } from '../utils';
 
 const solveEquation = (equation: string): string[] => {
     const chars = equation.replace(/\s/g, '').split('');
@@ -12,28 +12,24 @@ const solveEquation = (equation: string): string[] => {
         for (let j = 0; j < 7; j++) {
             if (patterns[i][j] === 1) {
                 // Try removing stick from i, j
-                const newPatterns = patterns.map(p => [...p]);
-                newPatterns[i][j] = 0;
+                patterns[i][j] = 0;
 
-                for (let k = 0; k < newPatterns.length; k++) {
+                for (let k = 0; k < patterns.length; k++) {
                     for (let l = 0; l < 7; l++) {
-                        if (newPatterns[k][l] === 0) {
+                        if (patterns[k][l] === 0) {
                             // Try adding stick to k, l
-                            const testPatterns = newPatterns.map(p => [...p]);
-                            testPatterns[k][l] = 1;
+                            patterns[k][l] = 1;
 
-                            const testChars = testPatterns.map((p, idx) => patternToChar(p as SegmentPattern, chars[idx]));
+                            const testChars = patterns.map((p, idx) => patternToChar(p as SegmentPattern, chars[idx]));
                             if (!testChars.includes(null)) {
                                 const testEq = testChars.join('');
                                 if (testEq !== equation) {
                                     try {
                                         const [left, right] = testEq.split('=');
                                         if (left && right) {
-                                            // eslint-disable-next-line no-eval
-                                            const leftVal = eval(left);
-                                            // eslint-disable-next-line no-eval
-                                            const rightVal = eval(right);
-                                            if (leftVal === rightVal) {
+                                            const leftVal = evaluateExpression(left);
+                                            const rightVal = evaluateExpression(right);
+                                            if (leftVal !== null && rightVal !== null && leftVal === rightVal) {
                                                 solutions.add(testEq);
                                             }
                                         }
@@ -42,9 +38,15 @@ const solveEquation = (equation: string): string[] => {
                                     }
                                 }
                             }
+
+                            // Backtrack adding stick
+                            patterns[k][l] = 0;
                         }
                     }
                 }
+
+                // Backtrack removing stick
+                patterns[i][j] = 1;
             }
         }
     }

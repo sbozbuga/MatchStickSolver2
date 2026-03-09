@@ -1,0 +1,3 @@
+## 2026-03-09 - Array clones inside O(N^4) loop bodies
+**Learning:** `solveEquation` relied on generating combinations of 7-segment configurations by calling `patterns.map(p => [...p])` deep inside quadruple nested loops thousands of times. This triggered intense garbage collection loading and severely reduced performance due to pure array mapping allocations. 
+**Action:** When calculating brute-force layout permutations asynchronously or in dense iteration bounds, eliminate arbitrary map allocations by utilizing an in-place *backtracking* algorithm (`arr[i][j] = 0; check(); arr[i][j] = 1;`). It strictly tracks changes using simple primitives maintaining absolute correctness while entirely resolving GC overhead latency limitations.

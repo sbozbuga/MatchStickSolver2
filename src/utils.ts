@@ -63,6 +63,34 @@ export function calculateCombinedRemovalMask(equation: string, solutions: string
     return baseMask;
 }
 
+export function evaluateExpression(expr: string): number | null {
+    if (!expr) return null;
+
+    // Split into numbers and operators
+    const tokens = expr.match(/\d+|[+-]/g);
+    if (!tokens) return null;
+
+    let result = parseInt(tokens[0], 10);
+    if (isNaN(result)) return null;
+
+    for (let i = 1; i < tokens.length; i += 2) {
+        const op = tokens[i];
+        const nextVal = parseInt(tokens[i + 1], 10);
+
+        if (isNaN(nextVal)) return null;
+
+        if (op === '+') {
+            result += nextVal;
+        } else if (op === '-') {
+            result -= nextVal;
+        } else {
+            return null; // Unexpected operator
+        }
+    }
+
+    return result;
+}
+
 export function patternToChar(pattern: SegmentPattern, originalChar: string): string | null {
     if (originalChar === '=') {
         if (pattern.every((v, i) => v === EQUALS_SIGN[i])) return '=';
