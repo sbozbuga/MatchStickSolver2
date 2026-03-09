@@ -43,20 +43,25 @@ export function getMoveHighlights(originalEq: string, modifiedEq: string): Solut
     return { removalPatterns, additionPatterns };
 }
 
-export function safeEvaluate(expression: string): number {
+export function safeEvaluate(expression: string): number | null {
+    if (!expression) return null;
+
     // Basic validation to only allow digits, plus, minus, and whitespace
     if (!/^[0-9+\-\s]+$/.test(expression)) {
-        throw new Error('Invalid characters in expression');
+        return null;
     }
 
     // Tokenize the string (e.g. "12 + 3 - 4" -> ["12", "+", "3", "-", "4"])
+    // Notice: this regex correctly isolates numbers and operators,
+    // but if the expression is just "+" it becomes ["+"]
     const tokens = expression.match(/\d+|[+-]/g);
     if (!tokens || tokens.length === 0) {
-        throw new Error('Invalid expression format');
+        return null;
     }
 
-    // Start with the first number
+    // First token must be a number (we don't support leading negative for matches)
     let result = parseInt(tokens[0], 10);
+    if (isNaN(result)) return null;
 
     // Evaluate left-to-right
     for (let i = 1; i < tokens.length; i += 2) {
@@ -64,17 +69,18 @@ export function safeEvaluate(expression: string): number {
         const nextNumberStr = tokens[i + 1];
 
         if (nextNumberStr === undefined) {
-             throw new Error('Missing operand');
+             return null;
         }
 
         const nextNumber = parseInt(nextNumberStr, 10);
+        if (isNaN(nextNumber)) return null;
 
         if (operator === '+') {
             result += nextNumber;
         } else if (operator === '-') {
             result -= nextNumber;
         } else {
-             throw new Error(`Invalid operator: ${operator}`);
+             return null;
         }
     }
 
@@ -99,40 +105,4 @@ export function calculateCombinedRemovalMask(equation: string, solutions: string
     });
 
     return baseMask;
-}
-
-/**
- * Safely evaluates simple math expressions containing integers, +, and -.
- * Returns null if the expression is invalid.
- */
-export function safeEvaluate(expr: string): number | null {
-    if (!expr) return null;
-
-    // Split by operators, keeping the operators in the array
-    const parts = expr.split(/([+-])/);
-    if (parts.length === 0) return null;
-
-    let result = parseInt(parts[0], 10);
-    if (isNaN(result)) return null;
-
-    for (let i = 1; i < parts.length; i += 2) {
-        const op = parts[i];
-        const valStr = parts[i + 1];
-
-        // Handle trailing operators or missing values
-        if (valStr === undefined || valStr === '') return null;
-
-        const val = parseInt(valStr, 10);
-        if (isNaN(val)) return null;
-
-        if (op === '+') {
-            result += val;
-        } else if (op === '-') {
-            result -= val;
-        } else {
-            return null; // Unsupported operator
-        }
-    }
-
-    return result;
 }

@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { DIGITS, OPERATORS, EQUALS_SIGN } from '../constants';
-import { safeEvaluate } from '../utils';
+import { safeEvaluate, getPattern } from '../utils';
 import type { SegmentPattern } from '../types';
-import { safeEvaluate } from '../utils';
 
 const EqualsSign = ({ size }: { size: { width: number, height: number } }) => (
     <svg viewBox="0 0 50 80" style={size} className="stroke-current text-amber-400" strokeWidth="4" strokeLinecap="round">
@@ -10,15 +9,6 @@ const EqualsSign = ({ size }: { size: { width: number, height: number } }) => (
         <path d="M 10 50 H 40" className="transition-opacity opacity-100" />
     </svg>
 );
-
-// Helper to convert char to pattern
-const charToPattern = (char: string): SegmentPattern => {
-    if (/\d/.test(char)) return [...DIGITS[parseInt(char)]];
-    if (char === '+') return [...OPERATORS['+']];
-    if (char === '-') return [...OPERATORS['-']];
-    if (char === '=') return [...EQUALS_SIGN];
-    return [0, 0, 0, 0, 0, 0, 0];
-};
 
 // Helper to convert pattern to char
 const patternToChar = (pattern: SegmentPattern, originalChar: string): string | null => {
@@ -74,7 +64,7 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
     useEffect(() => {
         const eq = QUIZ_PUZZLES[puzzleIndex];
         setOriginalEquation(eq);
-        setPatterns(eq.split('').map(charToPattern));
+        setPatterns(eq.split('').map(getPattern).map(p => [...p]));
         setIsSolved(false);
     }, [puzzleIndex]);
 
@@ -90,19 +80,17 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
         
         const currentEq = currentChars.join('');
         
-        try {
-            const [left, right] = currentEq.split('=');
-            if (left && right) {
-                const leftVal = safeEvaluate(left);
-                const rightVal = safeEvaluate(right);
-                if (leftVal === rightVal && currentEq !== originalEquation) {
-                    setIsSolved(true);
-                    if (onSolveSuccess) onSolveSuccess();
-                } else {
-                    setIsSolved(false);
-                }
+        const [left, right] = currentEq.split('=');
+        if (left && right) {
+            const leftVal = safeEvaluate(left);
+            const rightVal = safeEvaluate(right);
+            if (leftVal !== null && rightVal !== null && leftVal === rightVal && currentEq !== originalEquation) {
+                setIsSolved(true);
+                if (onSolveSuccess) onSolveSuccess();
+            } else {
+                setIsSolved(false);
             }
-        } catch (e) {
+        } else {
             setIsSolved(false);
         }
     }, [patterns, originalEquation, onSolveSuccess]);
@@ -194,7 +182,7 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
     };
 
     const handleReset = () => {
-        setPatterns(originalEquation.split('').map(charToPattern));
+        setPatterns(originalEquation.split('').map(getPattern).map(p => [...p]));
         setIsSolved(false);
     };
 
