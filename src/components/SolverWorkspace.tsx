@@ -1,38 +1,11 @@
 import React, { useState, useMemo } from 'react';
-import { DIGITS, OPERATORS, EQUALS_SIGN } from '../constants';
 import type { SegmentPattern } from '../types';
-
-const EqualsSign = ({ size }: { size: { width: number, height: number } }) => (
-    <svg viewBox="0 0 50 80" style={size} className="stroke-current text-amber-400" strokeWidth="4" strokeLinecap="round">
-        <path d="M 10 30 H 40" className="transition-opacity opacity-100" />
-        <path d="M 10 50 H 40" className="transition-opacity opacity-100" />
-    </svg>
-);
-
-const charToPattern = (char: string): SegmentPattern => {
-    if (/\d/.test(char)) return [...DIGITS[parseInt(char)]];
-    if (char === '+') return [...OPERATORS['+']];
-    if (char === '-') return [...OPERATORS['-']];
-    if (char === '=') return [...EQUALS_SIGN];
-    return [0, 0, 0, 0, 0, 0, 0];
-};
-
-const patternToChar = (pattern: SegmentPattern, originalChar: string): string | null => {
-    if (originalChar === '=') {
-        if (pattern.every((v, i) => v === EQUALS_SIGN[i])) return '=';
-        return null;
-    }
-    for (let i = 0; i <= 9; i++) {
-        if (pattern.every((v, idx) => v === DIGITS[i][idx])) return i.toString();
-    }
-    if (pattern.every((v, idx) => v === OPERATORS['+'][idx])) return '+';
-    if (pattern.every((v, idx) => v === OPERATORS['-'][idx])) return '-';
-    return null;
-};
+import { EqualsSign } from './EqualsSign';
+import { getPattern, patternToChar } from '../utils';
 
 const solveEquation = (equation: string): string[] => {
     const chars = equation.replace(/\s/g, '').split('');
-    const patterns = chars.map(charToPattern);
+    const patterns = chars.map(c => [...getPattern(c)] as SegmentPattern);
     const solutions = new Set<string>();
 
     for (let i = 0; i < patterns.length; i++) {
@@ -82,12 +55,12 @@ const solveEquation = (equation: string): string[] => {
 const StaticEquation: React.FC<{ equation: string, originalEquation?: string }> = ({ equation, originalEquation }) => {
     const chars = equation.replace(/\s/g, '').split('');
     const originalChars = originalEquation ? originalEquation.replace(/\s/g, '').split('') : chars;
-    
+
     const renderStickDisplay = (charIndex: number, char: string, originalChar: string) => {
         const size = { width: 36, height: 57.6 };
-        const pattern = charToPattern(char);
-        const originalPattern = charToPattern(originalChar);
-        
+        const pattern = getPattern(char);
+        const originalPattern = getPattern(originalChar);
+
         if (char === '=') {
             return <EqualsSign size={size} />;
         }
@@ -98,11 +71,11 @@ const StaticEquation: React.FC<{ equation: string, originalEquation?: string }> 
                     {[1, 3].map(segmentIndex => {
                         const isActive = pattern[segmentIndex] === 1;
                         const wasActive = originalPattern[segmentIndex] === 1;
-                        
+
                         let d = "";
                         if (segmentIndex === 3) d = "M 15 40 H 35";
                         if (segmentIndex === 1) d = "M 25 30 V 50";
-                        
+
                         let colorClass = "text-amber-400";
                         if (isActive && !wasActive) colorClass = "text-emerald-400"; // Added stick
                         if (!isActive && wasActive) colorClass = "text-rose-500 opacity-30"; // Removed stick
@@ -135,7 +108,7 @@ const StaticEquation: React.FC<{ equation: string, originalEquation?: string }> 
                 {segments.map((seg, segmentIndex) => {
                     const isActive = pattern[segmentIndex] === 1;
                     const wasActive = originalPattern[segmentIndex] === 1;
-                    
+
                     let colorClass = "text-amber-400";
                     if (isActive && !wasActive) colorClass = "text-emerald-400"; // Added stick
                     if (!isActive && wasActive) colorClass = "text-rose-500 opacity-30"; // Removed stick
@@ -167,7 +140,7 @@ const StaticEquation: React.FC<{ equation: string, originalEquation?: string }> 
 export const SolverWorkspace: React.FC = () => {
     const [input, setInput] = useState('6+4=4');
     const [equation, setEquation] = useState('6+4=4');
-    
+
     const solutions = useMemo(() => {
         return solveEquation(equation);
     }, [equation]);

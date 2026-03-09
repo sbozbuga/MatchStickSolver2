@@ -6,12 +6,12 @@ export function getPattern(char: string | number): SegmentPattern {
     if (charStr === '+') return OPERATORS['+'];
     if (charStr === '-') return OPERATORS['-'];
     if (charStr === '=') return EQUALS_SIGN;
-    
+
     const digit = parseInt(charStr, 10);
     if (!isNaN(digit) && DIGITS[digit]) {
         return DIGITS[digit];
     }
-    
+
     return [0, 0, 0, 0, 0, 0, 0];
 }
 
@@ -61,4 +61,22 @@ export function calculateCombinedRemovalMask(equation: string, solutions: string
     });
 
     return baseMask;
+}
+
+export function patternToChar(pattern: SegmentPattern, originalChar: string): string | null {
+    if (originalChar === '=') {
+        if (pattern.every((v, i) => v === EQUALS_SIGN[i])) return '=';
+        return null;
+    }
+
+    // Check digits
+    for (let i = 0; i <= 9; i++) {
+        if (pattern.every((v, idx) => v === DIGITS[i][idx])) return i.toString();
+    }
+
+    // Check operators
+    if (pattern.every((v, idx) => v === OPERATORS['+'][idx])) return '+';
+    if (pattern.every((v, idx) => v === OPERATORS['-'][idx])) return '-';
+
+    return null;
 }

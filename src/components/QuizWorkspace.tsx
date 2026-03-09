@@ -1,41 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { DIGITS, OPERATORS, EQUALS_SIGN } from '../constants';
 import type { SegmentPattern } from '../types';
-
-const EqualsSign = ({ size }: { size: { width: number, height: number } }) => (
-    <svg viewBox="0 0 50 80" style={size} className="stroke-current text-amber-400" strokeWidth="4" strokeLinecap="round">
-        <path d="M 10 30 H 40" className="transition-opacity opacity-100" />
-        <path d="M 10 50 H 40" className="transition-opacity opacity-100" />
-    </svg>
-);
-
-// Helper to convert char to pattern
-const charToPattern = (char: string): SegmentPattern => {
-    if (/\d/.test(char)) return [...DIGITS[parseInt(char)]];
-    if (char === '+') return [...OPERATORS['+']];
-    if (char === '-') return [...OPERATORS['-']];
-    if (char === '=') return [...EQUALS_SIGN];
-    return [0, 0, 0, 0, 0, 0, 0];
-};
-
-// Helper to convert pattern to char
-const patternToChar = (pattern: SegmentPattern, originalChar: string): string | null => {
-    if (originalChar === '=') {
-        if (pattern.every((v, i) => v === EQUALS_SIGN[i])) return '=';
-        return null;
-    }
-    
-    // Check digits
-    for (let i = 0; i <= 9; i++) {
-        if (pattern.every((v, idx) => v === DIGITS[i][idx])) return i.toString();
-    }
-    
-    // Check operators
-    if (pattern.every((v, idx) => v === OPERATORS['+'][idx])) return '+';
-    if (pattern.every((v, idx) => v === OPERATORS['-'][idx])) return '-';
-    
-    return null;
-};
+import { EqualsSign } from './EqualsSign';
+import { getPattern, patternToChar } from '../utils';
 
 const QUIZ_PUZZLES = [
     '6+4=4', // 0+4=4
@@ -63,31 +29,31 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
     const [dragSource, setDragSource] = useState<{ charIndex: number, segmentIndex: number } | null>(null);
     const [hoverTarget, setHoverTarget] = useState<{ charIndex: number, segmentIndex: number } | null>(null);
     const [isSolved, setIsSolved] = useState(false);
-    
+
     // Refs for touch tracking
     const containerRef = useRef<HTMLDivElement>(null);
     const isDraggingRef = useRef(false);
-    
+
     // Initialize quiz
     useEffect(() => {
         const eq = QUIZ_PUZZLES[puzzleIndex];
         setOriginalEquation(eq);
-        setPatterns(eq.split('').map(charToPattern));
+        setPatterns(eq.split('').map(c => [...getPattern(c)] as SegmentPattern));
         setIsSolved(false);
     }, [puzzleIndex]);
 
     // Check if solved
     useEffect(() => {
         if (patterns.length === 0) return;
-        
+
         const currentChars = patterns.map((p, i) => patternToChar(p, originalEquation[i]));
         if (currentChars.includes(null)) {
             setIsSolved(false);
             return;
         }
-        
+
         const currentEq = currentChars.join('');
-        
+
         try {
             const [left, right] = currentEq.split('=');
             if (left && right) {
@@ -111,12 +77,12 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
         if (patterns[charIndex][segmentIndex] === 1 && !isSolved) {
             e.preventDefault();
             e.stopPropagation();
-            
+
             isDraggingRef.current = true;
-            
+
             // Set drag source
             setDragSource({ charIndex, segmentIndex });
-            
+
             // Optimistically remove the stick
             setPatterns(prev => {
                 const newPatterns = [...prev];
@@ -129,28 +95,28 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
 
     const handlePointerMove = useCallback((e: PointerEvent) => {
         if (!isDraggingRef.current) return;
-        
+
         // Find element under pointer
         const element = document.elementFromPoint(e.clientX, e.clientY);
         if (!element) {
             setHoverTarget(null);
             return;
         }
-        
+
         // Check if element has data attributes for charIndex and segmentIndex
         const charIndexStr = element.getAttribute('data-char-index');
         const segmentIndexStr = element.getAttribute('data-segment-index');
-        
+
         if (charIndexStr !== null && segmentIndexStr !== null) {
             const charIndex = parseInt(charIndexStr, 10);
             const segmentIndex = parseInt(segmentIndexStr, 10);
-            
+
             if (patterns[charIndex] && patterns[charIndex][segmentIndex] === 0) {
                 setHoverTarget({ charIndex, segmentIndex });
                 return;
             }
         }
-        
+
         setHoverTarget(null);
     }, [patterns]);
 
@@ -158,7 +124,7 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
         if (isDraggingRef.current && dragSource) {
             setPatterns(prev => {
                 const newPatterns = [...prev];
-                
+
                 if (hoverTarget) {
                     // Place stick at hover target
                     newPatterns[hoverTarget.charIndex] = [...newPatterns[hoverTarget.charIndex]];
@@ -168,10 +134,10 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
                     newPatterns[dragSource.charIndex] = [...newPatterns[dragSource.charIndex]];
                     newPatterns[dragSource.charIndex][dragSource.segmentIndex] = 1;
                 }
-                
+
                 return newPatterns;
             });
-            
+
             setDragSource(null);
             setHoverTarget(null);
             isDraggingRef.current = false;
@@ -194,13 +160,13 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
     };
 
     const handleReset = () => {
-        setPatterns(originalEquation.split('').map(charToPattern));
+        setPatterns(originalEquation.split('').map(c => [...getPattern(c)] as SegmentPattern));
         setIsSolved(false);
     };
 
     const renderInteractiveStickDisplay = (charIndex: number, pattern: SegmentPattern, char: string) => {
         const size = { width: 72, height: 115.2 };
-        
+
         if (char === '=') {
             return <EqualsSign size={size} />;
         }
@@ -212,11 +178,11 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
                     {[1, 3].map(segmentIndex => {
                         const isActive = pattern[segmentIndex] === 1;
                         const isHovered = hoverTarget?.charIndex === charIndex && hoverTarget?.segmentIndex === segmentIndex;
-                        
+
                         let d = "";
                         if (segmentIndex === 3) d = "M 15 40 H 35"; // Horizontal
                         if (segmentIndex === 1) d = "M 25 30 V 50"; // Vertical
-                        
+
                         const classes = [
                             'transition-opacity cursor-pointer',
                             isActive ? 'opacity-100' : 'opacity-10',
@@ -225,7 +191,7 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
 
                         return (
                             <g key={segmentIndex}>
-                                <path 
+                                <path
                                     d={d}
                                     stroke="transparent"
                                     strokeWidth="24"
@@ -262,7 +228,7 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
                 {segments.map((seg, segmentIndex) => {
                     const isActive = pattern[segmentIndex] === 1;
                     const isHovered = hoverTarget?.charIndex === charIndex && hoverTarget?.segmentIndex === segmentIndex;
-                    
+
                     const classes = [
                         'transition-opacity cursor-pointer',
                         isActive ? 'opacity-100' : 'opacity-10',
@@ -271,7 +237,7 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
 
                     return (
                         <g key={seg.key}>
-                            <path 
+                            <path
                                 d={seg.d}
                                 stroke="transparent"
                                 strokeWidth="24"
@@ -312,7 +278,7 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
                 {isSolved ? (
                     <>
                         <span className="text-3xl font-bold text-emerald-400 animate-bounce">Correct! Well done!</span>
-                        <button 
+                        <button
                             onClick={handleNextPuzzle}
                             className="px-8 py-3 bg-amber-500 text-slate-900 font-bold rounded-lg hover:bg-amber-400 transition text-lg"
                         >
@@ -320,7 +286,7 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
                         </button>
                     </>
                 ) : (
-                    <button 
+                    <button
                         onClick={handleReset}
                         className="px-6 py-2 bg-slate-700 text-slate-300 font-medium rounded-lg hover:bg-slate-600 transition"
                     >
@@ -328,7 +294,7 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
                     </button>
                 )}
             </div>
-            
+
             {dragSource && (
                 <div className="fixed top-4 right-4 bg-amber-500/20 text-amber-400 px-4 py-2 rounded-full animate-pulse z-50">
                     Dragging stick...
