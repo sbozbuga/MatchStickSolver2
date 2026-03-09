@@ -91,20 +91,27 @@ export function evaluateExpression(expr: string): number | null {
     return result;
 }
 
+function isMatch(p1: SegmentPattern, p2: SegmentPattern): boolean {
+    for (let i = 0; i < 7; i++) {
+        if (p1[i] !== p2[i]) return false;
+    }
+    return true;
+}
+
 export function patternToChar(pattern: SegmentPattern, originalChar: string): string | null {
     if (originalChar === '=') {
-        if (pattern.every((v, i) => v === EQUALS_SIGN[i])) return '=';
+        if (isMatch(pattern, EQUALS_SIGN)) return '=';
         return null;
     }
 
     // Check digits
     for (let i = 0; i <= 9; i++) {
-        if (pattern.every((v, idx) => v === DIGITS[i][idx])) return i.toString();
+        if (isMatch(pattern, DIGITS[i])) return i.toString();
     }
 
     // Check operators
-    if (pattern.every((v, idx) => v === OPERATORS['+'][idx])) return '+';
-    if (pattern.every((v, idx) => v === OPERATORS['-'][idx])) return '-';
+    if (isMatch(pattern, OPERATORS['+'])) return '+';
+    if (isMatch(pattern, OPERATORS['-'])) return '-';
 
     return null;
 }
