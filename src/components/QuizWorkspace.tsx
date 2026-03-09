@@ -1,21 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import type { SegmentPattern } from '../types';
 import { EqualsSign } from './EqualsSign';
-import { getPattern, patternToChar, evaluateExpression } from '../utils';
-
-const QUIZ_PUZZLES = [
-    '6+4=4', // 0+4=4
-    '5+7=2', // 9-7=2
-    '9-5=8', // 3+5=8
-    '2+2=5', // 2+3=5
-    '5-5=2', // 5-3=2
-    '4+2=9', // 4+5=9
-    '3+3=8', // 3+5=8
-    '1+1=3', // 1+1=2
-    '9+3=4', // 8-3=4
-    '6+2=9', // 6+3=9
-    '0+4=4', // 8-4=4
-];
+import { getPattern, patternToChar, evaluateExpression, generateRandomPuzzle } from '../utils';
 
 interface QuizWorkspaceProps {
     onSolveSuccess?: () => void;
@@ -23,8 +9,8 @@ interface QuizWorkspaceProps {
 
 export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) => {
     // State
-    const [puzzleIndex, setPuzzleIndex] = useState(0);
-    const [originalEquation, setOriginalEquation] = useState(QUIZ_PUZZLES[0]);
+    const [puzzleCount, setPuzzleCount] = useState(1);
+    const [originalEquation, setOriginalEquation] = useState('');
     const [patterns, setPatterns] = useState<SegmentPattern[]>([]);
     const [dragSource, setDragSource] = useState<{ charIndex: number, segmentIndex: number } | null>(null);
     const [hoverTarget, setHoverTarget] = useState<{ charIndex: number, segmentIndex: number } | null>(null);
@@ -39,15 +25,19 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
     const pointerStartRef = useRef<{ x: number, y: number } | null>(null);
 
     // Initialize quiz
-    useEffect(() => {
-        const eq = QUIZ_PUZZLES[puzzleIndex];
+    const loadNewPuzzle = useCallback(() => {
+        const eq = generateRandomPuzzle();
         setOriginalEquation(eq);
         const initialPatterns = eq.split('').map(c => [...getPattern(c)] as SegmentPattern);
         setPatterns(initialPatterns);
         setInitialSticksCount(initialPatterns.flat().reduce((sum, v) => sum + v, 0));
         setIsSolved(false);
         setIsFailed(false);
-    }, [puzzleIndex]);
+    }, []);
+
+    useEffect(() => {
+        loadNewPuzzle();
+    }, [loadNewPuzzle]);
 
     // Check if solved
     useEffect(() => {
@@ -245,7 +235,8 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
     }, [handlePointerMove, handlePointerUp, handleGlobalPointerDown]);
 
     const handleNextPuzzle = () => {
-        setPuzzleIndex(prev => (prev + 1) % QUIZ_PUZZLES.length);
+        setPuzzleCount(prev => prev + 1);
+        loadNewPuzzle();
     };
 
     const handleReset = () => {
@@ -352,7 +343,7 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
         <div className="w-full max-w-4xl mx-auto bg-slate-800 rounded-xl p-6 shadow-xl border border-slate-700" ref={containerRef}>
             <div className="text-center mb-6 flex justify-between items-center">
                 <h2 className="text-2xl font-bold text-amber-400">Quiz Mode</h2>
-                <span className="text-slate-400">Puzzle {puzzleIndex + 1} of {QUIZ_PUZZLES.length}</span>
+                <span className="text-slate-400">Solving Puzzle #{puzzleCount}</span>
             </div>
             <p className="text-slate-300 mt-2 text-center mb-8 text-lg">Drag 1 stick to fix the equation!</p>
 

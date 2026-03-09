@@ -1,58 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import type { SegmentPattern } from '../types';
 import { EqualsSign } from './EqualsSign';
-import { getPattern, patternToChar, evaluateExpression } from '../utils';
-
-const solveEquation = (equation: string): string[] => {
-    const chars = equation.replace(/\s/g, '').split('');
-    const patterns = chars.map(c => [...getPattern(c)] as SegmentPattern);
-    const solutions = new Set<string>();
-
-    for (let i = 0; i < patterns.length; i++) {
-        for (let j = 0; j < 7; j++) {
-            if (patterns[i][j] === 1) {
-                // Try removing stick from i, j
-                patterns[i][j] = 0;
-
-                for (let k = 0; k < patterns.length; k++) {
-                    for (let l = 0; l < 7; l++) {
-                        if (patterns[k][l] === 0) {
-                            // Try adding stick to k, l
-                            patterns[k][l] = 1;
-
-                            const testChars = patterns.map((p, idx) => patternToChar(p as SegmentPattern, chars[idx]));
-                            if (!testChars.includes(null)) {
-                                const testEq = testChars.join('');
-                                if (testEq !== equation) {
-                                    try {
-                                        const [left, right] = testEq.split('=');
-                                        if (left && right) {
-                                            const leftVal = evaluateExpression(left);
-                                            const rightVal = evaluateExpression(right);
-                                            if (leftVal !== null && rightVal !== null && leftVal === rightVal) {
-                                                solutions.add(testEq);
-                                            }
-                                        }
-                                    } catch (e) {
-                                        // Ignore invalid equations
-                                    }
-                                }
-                            }
-
-                            // Backtrack adding stick
-                            patterns[k][l] = 0;
-                        }
-                    }
-                }
-
-                // Backtrack removing stick
-                patterns[i][j] = 1;
-            }
-        }
-    }
-
-    return Array.from(solutions);
-};
+import { getPattern, patternToChar, solveEquation } from '../utils';
 
 const StaticEquation: React.FC<{ equation: string, originalEquation?: string }> = ({ equation, originalEquation }) => {
     const chars = equation.replace(/\s/g, '').split('');
