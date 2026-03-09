@@ -29,6 +29,8 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
     const [dragSource, setDragSource] = useState<{ charIndex: number, segmentIndex: number } | null>(null);
     const [hoverTarget, setHoverTarget] = useState<{ charIndex: number, segmentIndex: number } | null>(null);
     const [isSolved, setIsSolved] = useState(false);
+    const [isFailed, setIsFailed] = useState(false);
+    const [initialSticksCount, setInitialSticksCount] = useState(0);
 
     // Refs for touch tracking
     const containerRef = useRef<HTMLDivElement>(null);
@@ -40,41 +42,64 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
     useEffect(() => {
         const eq = QUIZ_PUZZLES[puzzleIndex];
         setOriginalEquation(eq);
-        setPatterns(eq.split('').map(c => [...getPattern(c)] as SegmentPattern));
+        const initialPatterns = eq.split('').map(c => [...getPattern(c)] as SegmentPattern);
+        setPatterns(initialPatterns);
+        setInitialSticksCount(initialPatterns.flat().reduce((sum, v) => sum + v, 0));
         setIsSolved(false);
+        setIsFailed(false);
     }, [puzzleIndex]);
 
     // Check if solved
     useEffect(() => {
         if (patterns.length === 0) return;
 
-        const currentChars = patterns.map((p, i) => patternToChar(p, originalEquation[i]));
-        if (currentChars.includes(null)) {
+        const currentSticksCount = patterns.flat().reduce((sum, v) => sum + v, 0);
+        if (currentSticksCount !== initialSticksCount) {
             setIsSolved(false);
+            setIsFailed(false);
             return;
         }
 
+        const currentChars = patterns.map((p, i) => patternToChar(p, originalEquation[i]));
         const currentEq = currentChars.join('');
+
+        if (currentEq === originalEquation) {
+            setIsSolved(false);
+            setIsFailed(false);
+            return;
+        }
+
+        if (currentChars.includes(null)) {
+            setIsFailed(true);
+            setIsSolved(false);
+            return;
+        }
 
         try {
             const [left, right] = currentEq.split('=');
             if (left && right) {
                 const leftVal = evaluateExpression(left);
                 const rightVal = evaluateExpression(right);
-                if (leftVal !== null && rightVal !== null && leftVal === rightVal && currentEq !== originalEquation) {
+                if (leftVal !== null && rightVal !== null && leftVal === rightVal) {
                     setIsSolved(true);
+                    setIsFailed(false);
                     if (onSolveSuccess) onSolveSuccess();
                 } else {
+                    setIsFailed(true);
                     setIsSolved(false);
                 }
+            } else {
+                setIsFailed(true);
+                setIsSolved(false);
             }
         } catch (e) {
+            setIsFailed(true);
             setIsSolved(false);
         }
-    }, [patterns, originalEquation, onSolveSuccess]);
+    }, [patterns, originalEquation, initialSticksCount, onSolveSuccess]);
 
     const handlePointerDown = (charIndex: number, segmentIndex: number, e: React.PointerEvent) => {
-        if (isSolved) return;
+        if (isSolved || isFailed) return;
 
         const isPresent = patterns[charIndex] && patterns[charIndex][segmentIndex] === 1;
 
@@ -226,6 +251,7 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
     const handleReset = () => {
         setPatterns(originalEquation.split('').map(c => [...getPattern(c)] as SegmentPattern));
         setIsSolved(false);
+        setIsFailed(false);
     };
 
     const renderInteractiveStickDisplay = (charIndex: number, pattern: SegmentPattern, char: string) => {
@@ -347,6 +373,16 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
                             className="px-8 py-3 bg-amber-500 text-slate-900 font-bold rounded-lg hover:bg-amber-400 transition text-lg"
                         >
                             Next Puzzle
+                        </button>
+                    </>
+                ) : isFailed ? (
+                    <>
+                        <span className="text-3xl font-bold text-red-400 animate-bounce">Incorrect!</span>
+                        <button
+                            onClick={handleReset}
+                            className="px-8 py-3 bg-red-500 text-white font-bold rounded-lg hover:bg-red-400 transition text-lg"
+                        >
+                            Try Again
                         </button>
                     </>
                 ) : (
