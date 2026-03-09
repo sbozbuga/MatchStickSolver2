@@ -169,19 +169,15 @@ export const generateRandomPuzzle = (): string => {
     if (!CACHED_PUZZLES) {
         const ALL_PUZZLES = new Set<string>();
         const validEquations: string[] = [];
-        const digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
         const ops = ['+', '-'];
 
         // 1. Generate all purely valid one-digit mathematics strings A +/- B = C
-        for (const a of digits) {
+        for (let aNum = 0; aNum <= 9; aNum++) {
             for (const op of ops) {
-                for (const b of digits) {
-                    for (const c of digits) {
-                        const eq = `${a}${op}${b}=${c}`;
-                        const left = evaluateExpression(`${a}${op}${b}`);
-                        if (left !== null && left === parseInt(c)) {
-                            validEquations.push(eq);
-                        }
+                for (let bNum = 0; bNum <= 9; bNum++) {
+                    const left = op === '+' ? aNum + bNum : aNum - bNum;
+                    if (left >= 0 && left <= 9) {
+                        validEquations.push(`${aNum}${op}${bNum}=${left}`);
                     }
                 }
             }
