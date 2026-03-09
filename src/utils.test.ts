@@ -1,5 +1,33 @@
 import { describe, it, expect } from 'vitest';
-import { calculateCombinedRemovalMask, getMoveHighlights, evaluateExpression } from './utils';
+import { calculateCombinedRemovalMask, getMoveHighlights, evaluateExpression, generateRandomPuzzle } from './utils';
+
+describe('generateRandomPuzzle', () => {
+    it('returns a string in the valid format A+/-B=C', () => {
+        const puzzle = generateRandomPuzzle();
+        expect(puzzle).toMatch(/^\d[+-]\d=\d$/);
+    });
+
+    it('returns an unsolved equation (mathematically incorrect)', () => {
+        const puzzle = generateRandomPuzzle();
+        const [left, right] = puzzle.split('=');
+        const leftValue = evaluateExpression(left);
+        const rightValue = parseInt(right, 10);
+
+        expect(leftValue).not.toBeNull();
+        expect(leftValue).not.toBe(rightValue);
+    });
+
+    it('generates different puzzles on multiple calls (randomness)', () => {
+        const puzzles = new Set<string>();
+        // Calling it 50 times should yield at least a few different puzzles.
+        // There are many possible puzzles, so getting 1 is statistically impossible if random works.
+        for (let i = 0; i < 50; i++) {
+            puzzles.add(generateRandomPuzzle());
+        }
+
+        expect(puzzles.size).toBeGreaterThan(1);
+    });
+});
 
 describe('calculateCombinedRemovalMask', () => {
     it('returns undefined if solutions array is empty or undefined', () => {
