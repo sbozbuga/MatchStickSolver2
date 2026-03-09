@@ -62,3 +62,21 @@ export function calculateCombinedRemovalMask(equation: string, solutions: string
 
     return baseMask;
 }
+
+/**
+ * Safely evaluates a simple arithmetic expression containing only addition and subtraction.
+ * @param expr The expression to evaluate (e.g., "1+2-3")
+ * @returns The result of the evaluation, or null if the expression is invalid.
+ */
+export function evaluateExpression(expr: string): number | null {
+    if (!expr || !/^[0-9+-]+$/.test(expr)) {
+        return null;
+    }
+
+    const tokens = expr.match(/[+-]?[0-9]+/g);
+    if (!tokens || tokens.join('') !== expr) {
+        return null;
+    }
+
+    return tokens.reduce((acc, token) => acc + parseInt(token, 10), 0);
+}
