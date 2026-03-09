@@ -33,6 +33,8 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
     // Refs for touch tracking
     const containerRef = useRef<HTMLDivElement>(null);
     const isDraggingRef = useRef(false);
+    const hasMovedRef = useRef(false);
+    const pointerStartRef = useRef<{ x: number, y: number } | null>(null);
 
     // Initialize quiz
     useEffect(() => {
@@ -72,11 +74,36 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
     }, [patterns, originalEquation, onSolveSuccess]);
 
     const handlePointerDown = (charIndex: number, segmentIndex: number, e: React.PointerEvent) => {
-        if (patterns[charIndex][segmentIndex] === 1 && !isSolved) {
+        if (isSolved) return;
+
+        const isPresent = patterns[charIndex] && patterns[charIndex][segmentIndex] === 1;
+
+        if (dragSource && !isDraggingRef.current) {
+            // We have a selected stick and we are clicking to place it
+            if (!isPresent) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                setPatterns(prev => {
+                    const newPatterns = [...prev];
+                    newPatterns[charIndex] = [...newPatterns[charIndex]];
+                    newPatterns[charIndex][segmentIndex] = 1;
+                    return newPatterns;
+                });
+
+                setDragSource(null);
+                setHoverTarget(null);
+            }
+            return;
+        }
+
+        if (isPresent) {
             e.preventDefault();
             e.stopPropagation();
 
             isDraggingRef.current = true;
+            hasMovedRef.current = false;
+            pointerStartRef.current = { x: e.clientX, y: e.clientY };
 
             // Set drag source
             setDragSource({ charIndex, segmentIndex });
@@ -92,7 +119,16 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
     };
 
     const handlePointerMove = useCallback((e: PointerEvent) => {
-        if (!isDraggingRef.current) return;
+        if (!dragSource) return;
+
+        // If pointer is down, check for movement to distinguish click from drag
+        if (isDraggingRef.current && pointerStartRef.current) {
+            const dx = e.clientX - pointerStartRef.current.x;
+            const dy = e.clientY - pointerStartRef.current.y;
+            if (dx * dx + dy * dy > 25) { // 5px movement threshold
+                hasMovedRef.current = true;
+            }
+        }
 
         // Find element under pointer
         const element = document.elementFromPoint(e.clientX, e.clientY);
@@ -116,42 +152,72 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
         }
 
         setHoverTarget(null);
-    }, [patterns]);
+    }, [patterns, dragSource]);
 
     const handlePointerUp = useCallback(() => {
         if (isDraggingRef.current && dragSource) {
-            setPatterns(prev => {
-                const newPatterns = [...prev];
-
-                if (hoverTarget) {
-                    // Place stick at hover target
+            if (hoverTarget && hasMovedRef.current) {
+                // Placed stick via drag & drop
+                setPatterns(prev => {
+                    const newPatterns = [...prev];
                     newPatterns[hoverTarget.charIndex] = [...newPatterns[hoverTarget.charIndex]];
                     newPatterns[hoverTarget.charIndex][hoverTarget.segmentIndex] = 1;
-                } else {
-                    // Return stick to source
+                    return newPatterns;
+                });
+                setDragSource(null);
+                setHoverTarget(null);
+                isDraggingRef.current = false;
+            } else if (hasMovedRef.current) {
+                // Dragged to an invalid area (missed target). Cancel drop.
+                setPatterns(prev => {
+                    const newPatterns = [...prev];
                     newPatterns[dragSource.charIndex] = [...newPatterns[dragSource.charIndex]];
                     newPatterns[dragSource.charIndex][dragSource.segmentIndex] = 1;
-                }
-
-                return newPatterns;
-            });
-
-            setDragSource(null);
-            setHoverTarget(null);
-            isDraggingRef.current = false;
+                    return newPatterns;
+                });
+                setDragSource(null);
+                setHoverTarget(null);
+                isDraggingRef.current = false;
+            } else {
+                // Pointer was held down and released without moving (click).
+                // Keep the stick selected for click-to-place.
+                isDraggingRef.current = false;
+            }
         }
     }, [dragSource, hoverTarget]);
+
+    const handleGlobalPointerDown = useCallback((e: PointerEvent) => {
+        if (dragSource && !isDraggingRef.current) {
+            // We have a selected stick, and we clicked somewhere.
+            // Check if we clicked on an SVG path (handled safely by local segment boundaries)
+            if ((e.target as Element).tagName === 'path' || (e.target as Element).closest('svg')) {
+                return;
+            }
+
+            // Otherwise, we clicked empty background space. Deselect the stick and return it.
+            setPatterns(prev => {
+                const newPatterns = [...prev];
+                newPatterns[dragSource.charIndex] = [...newPatterns[dragSource.charIndex]];
+                newPatterns[dragSource.charIndex][dragSource.segmentIndex] = 1;
+                return newPatterns;
+            });
+            setDragSource(null);
+            setHoverTarget(null);
+        }
+    }, [dragSource]);
 
     useEffect(() => {
         window.addEventListener('pointermove', handlePointerMove);
         window.addEventListener('pointerup', handlePointerUp);
         window.addEventListener('pointercancel', handlePointerUp);
+        window.addEventListener('pointerdown', handleGlobalPointerDown);
         return () => {
             window.removeEventListener('pointermove', handlePointerMove);
             window.removeEventListener('pointerup', handlePointerUp);
             window.removeEventListener('pointercancel', handlePointerUp);
+            window.removeEventListener('pointerdown', handleGlobalPointerDown);
         };
-    }, [handlePointerMove, handlePointerUp]);
+    }, [handlePointerMove, handlePointerUp, handleGlobalPointerDown]);
 
     const handleNextPuzzle = () => {
         setPuzzleIndex(prev => (prev + 1) % QUIZ_PUZZLES.length);
