@@ -173,7 +173,7 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
         if (char === '+' || char === '-') {
             return (
                 <svg viewBox="0 0 50 80" style={size} className="stroke-current text-amber-400" strokeWidth="4" strokeLinecap="round">
-                    {[1, 3].map(segmentIndex => {
+                    {[3, 1].map(segmentIndex => {
                         const isActive = pattern[segmentIndex] === 1;
                         const isHovered = hoverTarget?.charIndex === charIndex && hoverTarget?.segmentIndex === segmentIndex;
 
@@ -192,7 +192,7 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
                                 <path
                                     d={d}
                                     stroke="transparent"
-                                    strokeWidth="24"
+                                    strokeWidth="14"
                                     onPointerDown={(e) => handlePointerDown(charIndex, segmentIndex, e)}
                                     data-char-index={charIndex}
                                     data-segment-index={segmentIndex}
