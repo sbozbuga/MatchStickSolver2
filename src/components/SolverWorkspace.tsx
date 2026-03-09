@@ -1,23 +1,17 @@
 import React, { useState, useMemo } from 'react';
-import { safeEvaluate, getPattern } from '../utils';
-import { solveEquation } from '../solver';
-
-const EqualsSign = ({ size }: { size: { width: number, height: number } }) => (
-    <svg viewBox="0 0 50 80" style={size} className="stroke-current text-amber-400" strokeWidth="4" strokeLinecap="round">
-        <path d="M 10 30 H 40" className="transition-opacity opacity-100" />
-        <path d="M 10 50 H 40" className="transition-opacity opacity-100" />
-    </svg>
-);
+import type { SegmentPattern } from '../types';
+import { EqualsSign } from './EqualsSign';
+import { getPattern, patternToChar, solveEquation, generateRandomPuzzle } from '../utils';
 
 const StaticEquation: React.FC<{ equation: string, originalEquation?: string }> = ({ equation, originalEquation }) => {
     const chars = equation.replace(/\s/g, '').split('');
     const originalChars = originalEquation ? originalEquation.replace(/\s/g, '').split('') : chars;
-    
+
     const renderStickDisplay = (charIndex: number, char: string, originalChar: string) => {
-        const size = { width: 36, height: 57.6 };
+        const size = { width: 72, height: 115.2 };
         const pattern = getPattern(char);
         const originalPattern = getPattern(originalChar);
-        
+
         if (char === '=') {
             return <EqualsSign size={size} />;
         }
@@ -28,11 +22,11 @@ const StaticEquation: React.FC<{ equation: string, originalEquation?: string }> 
                     {[1, 3].map(segmentIndex => {
                         const isActive = pattern[segmentIndex] === 1;
                         const wasActive = originalPattern[segmentIndex] === 1;
-                        
+
                         let d = "";
                         if (segmentIndex === 3) d = "M 15 40 H 35";
                         if (segmentIndex === 1) d = "M 25 30 V 50";
-                        
+
                         let colorClass = "text-amber-400";
                         if (isActive && !wasActive) colorClass = "text-emerald-400"; // Added stick
                         if (!isActive && wasActive) colorClass = "text-rose-500 opacity-30"; // Removed stick
@@ -65,7 +59,7 @@ const StaticEquation: React.FC<{ equation: string, originalEquation?: string }> 
                 {segments.map((seg, segmentIndex) => {
                     const isActive = pattern[segmentIndex] === 1;
                     const wasActive = originalPattern[segmentIndex] === 1;
-                    
+
                     let colorClass = "text-amber-400";
                     if (isActive && !wasActive) colorClass = "text-emerald-400"; // Added stick
                     if (!isActive && wasActive) colorClass = "text-rose-500 opacity-30"; // Removed stick
@@ -97,7 +91,7 @@ const StaticEquation: React.FC<{ equation: string, originalEquation?: string }> 
 export const SolverWorkspace: React.FC = () => {
     const [input, setInput] = useState('6+4=4');
     const [equation, setEquation] = useState('6+4=4');
-    
+
     const solutions = useMemo(() => {
         return solveEquation(equation);
     }, [equation]);
@@ -105,6 +99,12 @@ export const SolverWorkspace: React.FC = () => {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setEquation(input);
+    };
+
+    const handleRandomize = () => {
+        const randomEq = generateRandomPuzzle();
+        setInput(randomEq);
+        setEquation(randomEq);
     };
 
     return (
@@ -117,15 +117,22 @@ export const SolverWorkspace: React.FC = () => {
             <form onSubmit={handleSubmit} className="flex gap-4 mb-12 max-w-xl mx-auto">
                 <input
                     type="text"
-                    aria-label="Equation to solve"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
+                    maxLength={20} // Security: Defense in depth against malicious long inputs
                     className="flex-1 bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-2xl text-center text-slate-100 focus:outline-none focus:border-amber-500 font-mono tracking-widest"
                     placeholder="e.g. 6+4=4"
                 />
                 <button
+                    type="button"
+                    onClick={handleRandomize}
+                    className="px-6 py-3 bg-slate-700 text-amber-500 font-bold rounded-lg hover:bg-slate-600 border border-slate-600 transition text-lg w-32"
+                >
+                    Random
+                </button>
+                <button
                     type="submit"
-                    className="px-8 py-3 bg-amber-500 text-slate-900 font-bold rounded-lg hover:bg-amber-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 transition text-lg"
+                    className="px-8 py-3 bg-amber-500 text-slate-900 font-bold rounded-lg hover:bg-amber-400 transition text-lg"
                 >
                     Solve
                 </button>

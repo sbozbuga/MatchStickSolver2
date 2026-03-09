@@ -1,4 +1,4 @@
-## 2023-10-24 - Unsafe eval() in Expression Evaluation
-**Vulnerability:** Direct usage of `eval()` to calculate mathematical equations in `QuizWorkspace.tsx` and `SolverWorkspace.tsx`.
-**Learning:** Even if the input space seems constrained by character-to-pattern matching, using `eval()` leaves the door open to arbitrary code execution if validation fails or is bypassed.
-**Prevention:** Always use a dedicated, strict parser (like a simple loop over matched digits/operators) for evaluating user-provided math expressions, avoiding `eval()` or `new Function()` entirely.
+## 2026-03-09 - Missing Input Constraints Triggering Client-Side CPU DoS
+**Vulnerability:** The application accepted unbounded character inputs directly into the `solveEquation` matrix engine. Due to the high cyclic complexity $O((7N)^2)$ of the backtracking algorithm, large unconstrained strings inherently exhaust memory natively and strictly lock the main thread, causing severe Denial of Service (browser freezing).
+**Learning:** Mathematical brute-forcer loops must always assume adversarial conditions from unsanitized free-text input forms. Complex looping mechanisms are highly vulnerable without input constraints acting as Defense-in-Depth layers naturally mitigating bad payloads entirely gracefully.
+**Prevention:** 1) Implemented physical `maxLength` restrictions cleanly directly into HTML inputs. 2) Hard-coded runtime length limits into `utils.ts` explicitly guaranteeing graceful native exit closures explicitly handling payload mutations safely securely.
