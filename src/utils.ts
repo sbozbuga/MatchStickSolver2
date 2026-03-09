@@ -66,29 +66,36 @@ export function calculateCombinedRemovalMask(equation: string, solutions: string
 export function evaluateExpression(expr: string): number | null {
     if (!expr) return null;
 
-    // Split into numbers and operators
-    const tokens = expr.match(/\d+|[+-]/g);
-    if (!tokens) return null;
+    let result = 0;
+    let currentNum = 0;
+    let hasNum = false;
+    let currentOp = 1;
 
-    let result = parseInt(tokens[0], 10);
-    if (isNaN(result)) return null;
+    for (let i = 0; i < expr.length; i++) {
+        const charCode = expr.charCodeAt(i);
 
-    for (let i = 1; i < tokens.length; i += 2) {
-        const op = tokens[i];
-        const nextVal = parseInt(tokens[i + 1], 10);
-
-        if (isNaN(nextVal)) return null;
-
-        if (op === '+') {
-            result += nextVal;
-        } else if (op === '-') {
-            result -= nextVal;
+        if (charCode >= 48 && charCode <= 57) { // '0' - '9'
+            currentNum = currentNum * 10 + (charCode - 48);
+            hasNum = true;
+        } else if (charCode === 43) { // '+'
+            if (!hasNum) return null;
+            result += currentOp * currentNum;
+            currentOp = 1;
+            currentNum = 0;
+            hasNum = false;
+        } else if (charCode === 45) { // '-'
+            if (!hasNum) return null;
+            result += currentOp * currentNum;
+            currentOp = -1;
+            currentNum = 0;
+            hasNum = false;
         } else {
-            return null; // Unexpected operator
+            return null; // Invalid character
         }
     }
 
-    return result;
+    if (!hasNum) return null;
+    return result + (currentOp * currentNum);
 }
 
 export function patternToChar(pattern: SegmentPattern, originalChar: string): string | null {
