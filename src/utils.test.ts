@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateCombinedRemovalMask, getMoveHighlights, evaluateExpression } from './utils';
+import { calculateCombinedRemovalMask, getMoveHighlights, evaluateExpression, solveEquation } from './utils';
 
 describe('calculateCombinedRemovalMask', () => {
     it('returns undefined if solutions array is empty or undefined', () => {
@@ -101,5 +101,46 @@ describe('evaluateExpression', () => {
     it('returns null for consecutive or malformed operators', () => {
         expect(evaluateExpression('6++4')).toBeNull();
         expect(evaluateExpression('6*4')).toBeNull(); // * is not matched by our regex [\d+|[+-]], so it might ignore it, but parsing breaks
+    });
+});
+
+describe('solveEquation', () => {
+    it('returns an empty array if equation length exceeds 20 characters (security limit)', () => {
+        const longEquation = '1+1=2' + ' '.repeat(20);
+        expect(solveEquation(longEquation)).toEqual([]);
+    });
+
+    it('returns an empty array for an empty string', () => {
+        expect(solveEquation('')).toEqual([]);
+    });
+
+    it('returns a single solution for a valid puzzle that has exactly one solution', () => {
+        expect(solveEquation('8-4=4')).toEqual(['0+4=4']);
+    });
+
+    it('returns multiple solutions for a puzzle that has more than one valid 1-stick move solution', () => {
+        const solutions = solveEquation('6+4=4');
+        expect(solutions).toContain('0+4=4');
+        expect(solutions).toContain('8-4=4');
+        expect(solutions.length).toBe(2);
+    });
+
+    it('returns an empty array when the puzzle has no valid 1-stick solution', () => {
+        expect(solveEquation('1+1=9')).toEqual([]);
+    });
+
+    it('returns an empty array when the equation is already valid and no other 1-stick move produces a valid equation', () => {
+        expect(solveEquation('5+4=9')).toEqual([]);
+    });
+
+    it('returns an empty array without throwing when given an invalid formatted or un-evaluable string', () => {
+        expect(solveEquation('===++==*')).toEqual([]);
+    });
+
+    it('handles and ignores whitespaces appropriately during string solving', () => {
+        const solutions = solveEquation(' 6 + 4 = 4 ');
+        expect(solutions).toContain('0+4=4');
+        expect(solutions).toContain('8-4=4');
+        expect(solutions.length).toBe(2);
     });
 });
