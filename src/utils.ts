@@ -43,68 +43,62 @@ export function getMoveHighlights(originalEq: string, modifiedEq: string): Solut
     return { removalPatterns, additionPatterns };
 }
 
-export function calculateCombinedRemovalMask(equation: string, solutions: string[]): SegmentPattern[] | undefined {
-    if (!solutions?.length || !equation) return undefined;
-
-    const equationChars = equation.replace(/\s/g, '').split('').filter(c => c !== '=');
-    const baseMask: SegmentPattern[] = equationChars.map(() => [0, 0, 0, 0, 0, 0, 0]);
-
-    solutions.forEach(sol => {
-        const { removalPatterns } = getMoveHighlights(equation, sol);
-        removalPatterns.forEach((charPattern, charIndex) => {
-            if (baseMask[charIndex]) {
-                charPattern.forEach((segment, segmentIndex) => {
-                    if (segment === 1) baseMask[charIndex][segmentIndex] = 1;
-                });
-            }
-        });
-    });
-
-    return baseMask;
-}
-
 export function evaluateExpression(expr: string): number | null {
     if (!expr) return null;
 
-    // Split into numbers and operators
-    const tokens = expr.match(/\d+|[+-]/g);
-    if (!tokens) return null;
+    let result = 0;
+    let currentNum = 0;
+    let hasNum = false;
+    let currentOp = 1;
 
-    let result = parseInt(tokens[0], 10);
-    if (isNaN(result)) return null;
+    for (let i = 0; i < expr.length; i++) {
+        const charCode = expr.charCodeAt(i);
 
-    for (let i = 1; i < tokens.length; i += 2) {
-        const op = tokens[i];
-        const nextVal = parseInt(tokens[i + 1], 10);
-
-        if (isNaN(nextVal)) return null;
-
-        if (op === '+') {
-            result += nextVal;
-        } else if (op === '-') {
-            result -= nextVal;
+        if (charCode >= 48 && charCode <= 57) { // '0' - '9'
+            currentNum = currentNum * 10 + (charCode - 48);
+            hasNum = true;
+        } else if (charCode === 43) { // '+'
+            if (!hasNum) return null;
+            result += currentOp * currentNum;
+            currentOp = 1;
+            currentNum = 0;
+            hasNum = false;
+        } else if (charCode === 45) { // '-'
+            if (!hasNum) return null;
+            result += currentOp * currentNum;
+            currentOp = -1;
+            currentNum = 0;
+            hasNum = false;
         } else {
-            return null; // Unexpected operator
+            return null; // Invalid character
         }
     }
 
-    return result;
+    if (!hasNum) return null;
+    return result + (currentOp * currentNum);
+}
+
+function isMatch(p1: SegmentPattern, p2: SegmentPattern): boolean {
+    for (let i = 0; i < 7; i++) {
+        if (p1[i] !== p2[i]) return false;
+    }
+    return true;
 }
 
 export function patternToChar(pattern: SegmentPattern, originalChar: string): string | null {
     if (originalChar === '=') {
-        if (pattern.every((v, i) => v === EQUALS_SIGN[i])) return '=';
+        if (isMatch(pattern, EQUALS_SIGN)) return '=';
         return null;
     }
 
     // Check digits
     for (let i = 0; i <= 9; i++) {
-        if (pattern.every((v, idx) => v === DIGITS[i][idx])) return i.toString();
+        if (isMatch(pattern, DIGITS[i])) return i.toString();
     }
 
     // Check operators
-    if (pattern.every((v, idx) => v === OPERATORS['+'][idx])) return '+';
-    if (pattern.every((v, idx) => v === OPERATORS['-'][idx])) return '-';
+    if (isMatch(pattern, OPERATORS['+'])) return '+';
+    if (isMatch(pattern, OPERATORS['-'])) return '-';
 
     return null;
 }
@@ -169,19 +163,15 @@ export const generateRandomPuzzle = (): string => {
     if (!CACHED_PUZZLES) {
         const ALL_PUZZLES = new Set<string>();
         const validEquations: string[] = [];
-        const digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
         const ops = ['+', '-'];
 
         // 1. Generate all purely valid one-digit mathematics strings A +/- B = C
-        for (const a of digits) {
+        for (let aNum = 0; aNum <= 9; aNum++) {
             for (const op of ops) {
-                for (const b of digits) {
-                    for (const c of digits) {
-                        const eq = `${a}${op}${b}=${c}`;
-                        const left = evaluateExpression(`${a}${op}${b}`);
-                        if (left !== null && left === parseInt(c)) {
-                            validEquations.push(eq);
-                        }
+                for (let bNum = 0; bNum <= 9; bNum++) {
+                    const left = op === '+' ? aNum + bNum : aNum - bNum;
+                    if (left >= 0 && left <= 9) {
+                        validEquations.push(`${aNum}${op}${bNum}=${left}`);
                     }
                 }
             }
