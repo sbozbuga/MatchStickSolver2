@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { calculateCombinedRemovalMask, getMoveHighlights, evaluateExpression, generateRandomPuzzle } from './utils';
+
+import { calculateCombinedRemovalMask, getMoveHighlights, evaluateExpression, generateRandomPuzzle, getPattern } from './utils';
+import { DIGITS, OPERATORS, EQUALS_SIGN } from './constants';
 
 describe('generateRandomPuzzle', () => {
     it('returns a string in the valid format A+/-B=C', () => {
@@ -26,6 +28,32 @@ describe('generateRandomPuzzle', () => {
         }
 
         expect(puzzles.size).toBeGreaterThan(1);
+
+describe('getPattern', () => {
+    it('returns the correct pattern for all digits 0-9 as numbers', () => {
+        for (let i = 0; i <= 9; i++) {
+            expect(getPattern(i)).toEqual(DIGITS[i]);
+        }
+    });
+
+    it('returns the correct pattern for all digits 0-9 as strings', () => {
+        for (let i = 0; i <= 9; i++) {
+            expect(getPattern(i.toString())).toEqual(DIGITS[i]);
+        }
+    });
+
+    it('returns the correct pattern for operators +, -, =', () => {
+        expect(getPattern('+')).toEqual(OPERATORS['+']);
+        expect(getPattern('-')).toEqual(OPERATORS['-']);
+        expect(getPattern('=')).toEqual(EQUALS_SIGN);
+    });
+
+    it('returns all zeros for invalid inputs', () => {
+        const emptyPattern = [0, 0, 0, 0, 0, 0, 0];
+        expect(getPattern('a')).toEqual(emptyPattern);
+        expect(getPattern('')).toEqual(emptyPattern);
+        expect(getPattern(' ')).toEqual(emptyPattern);
+        expect(getPattern('11')).toEqual(emptyPattern); // Only single digits are supported by DIGITS[digit]
     });
 });
 
