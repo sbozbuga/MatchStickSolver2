@@ -247,29 +247,19 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
         setIsFailed(false);
     };
 
-    const handleCopyEquation = () => {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(originalEquation);
-        } else {
-            // Fallback for insecure HTTP contexts
-            const textArea = document.createElement("textarea");
-            textArea.value = originalEquation;
-            textArea.style.position = "fixed";
-            textArea.style.left = "-999999px";
-            textArea.style.top = "-999999px";
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            try {
-                document.execCommand('copy');
-            } catch (err) {
-                console.error('Fallback copy failed', err);
-            }
-            document.body.removeChild(textArea);
+    const handleCopyEquation = async () => {
+        if (!navigator?.clipboard?.writeText) {
+            console.error('Clipboard API not available. Ensure you are in a secure context (HTTPS).');
+            return;
         }
 
-        setIsCopied(true);
-        setTimeout(() => setIsCopied(false), 2000);
+        try {
+            await navigator.clipboard.writeText(originalEquation);
+            setIsCopied(true);
+            setTimeout(() => setIsCopied(false), 2000);
+        } catch (err) {
+            console.error('Failed to copy equation: ', err);
+        }
     };
 
     const renderInteractiveStickDisplay = (charIndex: number, pattern: SegmentPattern, char: string) => {
