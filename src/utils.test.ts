@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-
+import * as utils from './utils';
+import { vi } from 'vitest';
 import { calculateCombinedRemovalMask, getMoveHighlights, evaluateExpression, generateRandomPuzzle, getPattern, patternToChar, solveEquation } from './utils';
 import { DIGITS, OPERATORS, EQUALS_SIGN } from './constants';
 
@@ -195,6 +196,22 @@ describe('evaluateExpression', () => {
 });
 
 describe('solveEquation', () => {
+    it('does not crash when encountering malformed generated equations', () => {
+        // We will mock evaluateExpression locally or rely on malformed strings
+        // Since solveEquation imports and uses evaluateExpression, we can spy on it.
+        const spy = vi.spyOn(utils, 'evaluateExpression').mockImplementation(() => {
+            throw new Error('Test Error');
+        });
+
+        expect(() => solveEquation('====')).not.toThrow();
+        expect(solveEquation('====')).toEqual([]);
+
+        spy.mockRestore();
+    });
+
+    it('handles potential evaluation errors gracefully', () => {
+        expect(() => solveEquation('++++')).not.toThrow();
+        expect(solveEquation('++++')).toEqual([]);
     it('returns an empty array if equation length exceeds 20 characters (security limit)', () => {
         const longEquation = '1+1=2' + ' '.repeat(20);
         expect(solveEquation(longEquation)).toEqual([]);
