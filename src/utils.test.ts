@@ -29,6 +29,8 @@ describe('generateRandomPuzzle', () => {
         }
 
         expect(puzzles.size).toBeGreaterThan(1);
+    });
+});
 
 describe('getPattern', () => {
     it('returns the correct pattern for all digits 0-9 as numbers', () => {
@@ -212,6 +214,8 @@ describe('solveEquation', () => {
     it('handles potential evaluation errors gracefully', () => {
         expect(() => solveEquation('++++')).not.toThrow();
         expect(solveEquation('++++')).toEqual([]);
+    });
+
     it('returns an empty array if equation length exceeds 20 characters (security limit)', () => {
         const longEquation = '1+1=2' + ' '.repeat(20);
         expect(solveEquation(longEquation)).toEqual([]);
