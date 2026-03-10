@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { calculateCombinedRemovalMask, getMoveHighlights, evaluateExpression, generateRandomPuzzle, getPattern } from './utils';
+import { calculateCombinedRemovalMask, getMoveHighlights, evaluateExpression, generateRandomPuzzle, getPattern, patternToChar } from './utils';
 import { DIGITS, OPERATORS, EQUALS_SIGN } from './constants';
 
 describe('generateRandomPuzzle', () => {
@@ -120,6 +120,40 @@ describe('calculateCombinedRemovalMask', () => {
         // 4 chars mapping to 5 chars solution
         expect(mask).toBeDefined();
         expect(mask?.length).toBe(4); // base mask follows original equation length
+    });
+});
+
+describe('patternToChar', () => {
+    it('returns "=" when originalChar is "=" and pattern matches EQUALS_SIGN', () => {
+        expect(patternToChar([...EQUALS_SIGN], '=')).toBe('=');
+    });
+
+    it('returns null when originalChar is "=" but pattern does not match EQUALS_SIGN', () => {
+        const invalidEqualsPattern = [1, 1, 0, 0, 0, 0, 1] as any; // slightly modified
+        expect(patternToChar(invalidEqualsPattern, '=')).toBeNull();
+    });
+
+    it('returns correct string for valid digits 0-9', () => {
+        for (let i = 0; i <= 9; i++) {
+            expect(patternToChar([...DIGITS[i]], '')).toBe(i.toString());
+        }
+    });
+
+    it('returns "+" for valid + operator pattern', () => {
+        expect(patternToChar([...OPERATORS['+']], '')).toBe('+');
+    });
+
+    it('returns "-" for valid - operator pattern', () => {
+        expect(patternToChar([...OPERATORS['-']], '')).toBe('-');
+    });
+
+    it('returns null for completely invalid patterns', () => {
+        const allZeros = [0, 0, 0, 0, 0, 0, 0] as any;
+        expect(patternToChar(allZeros, '')).toBeNull();
+
+        const allOnes = [1, 1, 1, 1, 1, 1, 1] as any; // this is '8', but what if we do something else?
+        const invalidPattern = [0, 1, 0, 1, 1, 0, 0] as any;
+        expect(patternToChar(invalidPattern, '')).toBeNull();
     });
 });
 
