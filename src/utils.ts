@@ -43,26 +43,6 @@ export function getMoveHighlights(originalEq: string, modifiedEq: string): Solut
     return { removalPatterns, additionPatterns };
 }
 
-export function calculateCombinedRemovalMask(equation: string, solutions: string[]): SegmentPattern[] | undefined {
-    if (!solutions?.length || !equation) return undefined;
-
-    const equationChars = equation.replace(/\s/g, '').split('').filter(c => c !== '=');
-    const baseMask: SegmentPattern[] = equationChars.map(() => [0, 0, 0, 0, 0, 0, 0]);
-
-    solutions.forEach(sol => {
-        const { removalPatterns } = getMoveHighlights(equation, sol);
-        removalPatterns.forEach((charPattern, charIndex) => {
-            if (baseMask[charIndex]) {
-                charPattern.forEach((segment, segmentIndex) => {
-                    if (segment === 1) baseMask[charIndex][segmentIndex] = 1;
-                });
-            }
-        });
-    });
-
-    return baseMask;
-}
-
 export function evaluateExpression(expr: string): number | null {
     if (!expr) return null;
 
@@ -169,19 +149,15 @@ export const generateRandomPuzzle = (): string => {
     if (!CACHED_PUZZLES) {
         const ALL_PUZZLES = new Set<string>();
         const validEquations: string[] = [];
-        const digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
         const ops = ['+', '-'];
 
         // 1. Generate all purely valid one-digit mathematics strings A +/- B = C
-        for (const a of digits) {
+        for (let aNum = 0; aNum <= 9; aNum++) {
             for (const op of ops) {
-                for (const b of digits) {
-                    for (const c of digits) {
-                        const eq = `${a}${op}${b}=${c}`;
-                        const left = evaluateExpression(`${a}${op}${b}`);
-                        if (left !== null && left === parseInt(c)) {
-                            validEquations.push(eq);
-                        }
+                for (let bNum = 0; bNum <= 9; bNum++) {
+                    const left = op === '+' ? aNum + bNum : aNum - bNum;
+                    if (left >= 0 && left <= 9) {
+                        validEquations.push(`${aNum}${op}${bNum}=${left}`);
                     }
                 }
             }
