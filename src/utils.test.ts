@@ -1,7 +1,62 @@
 import { describe, it, expect } from 'vitest';
 import * as utils from './utils';
-import { calculateCombinedRemovalMask, getMoveHighlights, evaluateExpression, solveEquation } from './utils';
 import { vi } from 'vitest';
+import { calculateCombinedRemovalMask, getMoveHighlights, evaluateExpression, generateRandomPuzzle, getPattern, patternToChar, solveEquation } from './utils';
+import { DIGITS, OPERATORS, EQUALS_SIGN } from './constants';
+
+describe('generateRandomPuzzle', () => {
+    it('returns a string in the valid format A+/-B=C', () => {
+        const puzzle = generateRandomPuzzle();
+        expect(puzzle).toMatch(/^\d[+-]\d=\d$/);
+    });
+
+    it('returns an unsolved equation (mathematically incorrect)', () => {
+        const puzzle = generateRandomPuzzle();
+        const [left, right] = puzzle.split('=');
+        const leftValue = evaluateExpression(left);
+        const rightValue = parseInt(right, 10);
+
+        expect(leftValue).not.toBeNull();
+        expect(leftValue).not.toBe(rightValue);
+    });
+
+    it('generates different puzzles on multiple calls (randomness)', () => {
+        const puzzles = new Set<string>();
+        // Calling it 50 times should yield at least a few different puzzles.
+        // There are many possible puzzles, so getting 1 is statistically impossible if random works.
+        for (let i = 0; i < 50; i++) {
+            puzzles.add(generateRandomPuzzle());
+        }
+
+        expect(puzzles.size).toBeGreaterThan(1);
+
+describe('getPattern', () => {
+    it('returns the correct pattern for all digits 0-9 as numbers', () => {
+        for (let i = 0; i <= 9; i++) {
+            expect(getPattern(i)).toEqual(DIGITS[i]);
+        }
+    });
+
+    it('returns the correct pattern for all digits 0-9 as strings', () => {
+        for (let i = 0; i <= 9; i++) {
+            expect(getPattern(i.toString())).toEqual(DIGITS[i]);
+        }
+    });
+
+    it('returns the correct pattern for operators +, -, =', () => {
+        expect(getPattern('+')).toEqual(OPERATORS['+']);
+        expect(getPattern('-')).toEqual(OPERATORS['-']);
+        expect(getPattern('=')).toEqual(EQUALS_SIGN);
+    });
+
+    it('returns all zeros for invalid inputs', () => {
+        const emptyPattern = [0, 0, 0, 0, 0, 0, 0];
+        expect(getPattern('a')).toEqual(emptyPattern);
+        expect(getPattern('')).toEqual(emptyPattern);
+        expect(getPattern(' ')).toEqual(emptyPattern);
+        expect(getPattern('11')).toEqual(emptyPattern); // Only single digits are supported by DIGITS[digit]
+    });
+});
 
 describe('calculateCombinedRemovalMask', () => {
     it('returns undefined if solutions array is empty or undefined', () => {
@@ -69,6 +124,40 @@ describe('calculateCombinedRemovalMask', () => {
     });
 });
 
+describe('patternToChar', () => {
+    it('returns "=" when originalChar is "=" and pattern matches EQUALS_SIGN', () => {
+        expect(patternToChar([...EQUALS_SIGN], '=')).toBe('=');
+    });
+
+    it('returns null when originalChar is "=" but pattern does not match EQUALS_SIGN', () => {
+        const invalidEqualsPattern = [1, 1, 0, 0, 0, 0, 1] as any; // slightly modified
+        expect(patternToChar(invalidEqualsPattern, '=')).toBeNull();
+    });
+
+    it('returns correct string for valid digits 0-9', () => {
+        for (let i = 0; i <= 9; i++) {
+            expect(patternToChar([...DIGITS[i]], '')).toBe(i.toString());
+        }
+    });
+
+    it('returns "+" for valid + operator pattern', () => {
+        expect(patternToChar([...OPERATORS['+']], '')).toBe('+');
+    });
+
+    it('returns "-" for valid - operator pattern', () => {
+        expect(patternToChar([...OPERATORS['-']], '')).toBe('-');
+    });
+
+    it('returns null for completely invalid patterns', () => {
+        const allZeros = [0, 0, 0, 0, 0, 0, 0] as any;
+        expect(patternToChar(allZeros, '')).toBeNull();
+
+        const allOnes = [1, 1, 1, 1, 1, 1, 1] as any; // this is '8', but what if we do something else?
+        const invalidPattern = [0, 1, 0, 1, 1, 0, 0] as any;
+        expect(patternToChar(invalidPattern, '')).toBeNull();
+    });
+});
+
 describe('evaluateExpression', () => {
     it('evaluates simple addition correctly', () => {
         expect(evaluateExpression('6+4')).toBe(10);
@@ -123,5 +212,42 @@ describe('solveEquation', () => {
     it('handles potential evaluation errors gracefully', () => {
         expect(() => solveEquation('++++')).not.toThrow();
         expect(solveEquation('++++')).toEqual([]);
+    it('returns an empty array if equation length exceeds 20 characters (security limit)', () => {
+        const longEquation = '1+1=2' + ' '.repeat(20);
+        expect(solveEquation(longEquation)).toEqual([]);
+    });
+
+    it('returns an empty array for an empty string', () => {
+        expect(solveEquation('')).toEqual([]);
+    });
+
+    it('returns a single solution for a valid puzzle that has exactly one solution', () => {
+        expect(solveEquation('8-4=4')).toEqual(['0+4=4']);
+    });
+
+    it('returns multiple solutions for a puzzle that has more than one valid 1-stick move solution', () => {
+        const solutions = solveEquation('6+4=4');
+        expect(solutions).toContain('0+4=4');
+        expect(solutions).toContain('8-4=4');
+        expect(solutions.length).toBe(2);
+    });
+
+    it('returns an empty array when the puzzle has no valid 1-stick solution', () => {
+        expect(solveEquation('1+1=9')).toEqual([]);
+    });
+
+    it('returns an empty array when the equation is already valid and no other 1-stick move produces a valid equation', () => {
+        expect(solveEquation('5+4=9')).toEqual([]);
+    });
+
+    it('returns an empty array without throwing when given an invalid formatted or un-evaluable string', () => {
+        expect(solveEquation('===++==*')).toEqual([]);
+    });
+
+    it('handles and ignores whitespaces appropriately during string solving', () => {
+        const solutions = solveEquation(' 6 + 4 = 4 ');
+        expect(solutions).toContain('0+4=4');
+        expect(solutions).toContain('8-4=4');
+        expect(solutions.length).toBe(2);
     });
 });
