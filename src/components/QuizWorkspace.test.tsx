@@ -122,4 +122,134 @@ describe('QuizWorkspace', () => {
         // Reset Puzzle button should be back
         expect(screen.getByText('Reset Puzzle')).toBeInTheDocument();
     });
+
+    describe('Copy Functionality', () => {
+        let originalClipboard: any;
+        let originalExecCommand: any;
+        const mockWriteText = vi.fn();
+
+        beforeEach(() => {
+            originalClipboard = navigator.clipboard;
+            originalExecCommand = document.execCommand;
+
+            // Setup default mock for clipboard
+            Object.defineProperty(navigator, 'clipboard', {
+                value: { writeText: mockWriteText },
+                writable: true,
+                configurable: true,
+            });
+
+            // Mock document.execCommand
+            document.execCommand = vi.fn().mockReturnValue(true);
+
+            // Mock console.error to keep test output clean
+            vi.spyOn(console, 'error').mockImplementation(() => {});
+        });
+
+        afterEach(() => {
+            Object.defineProperty(navigator, 'clipboard', {
+                value: originalClipboard,
+                writable: true,
+                configurable: true,
+            });
+            document.execCommand = originalExecCommand;
+            vi.restoreAllMocks();
+        });
+
+        it('uses navigator.clipboard.writeText when available', async () => {
+            render(<QuizWorkspace />);
+            const copyButton = screen.getByText('Copy');
+
+            fireEvent.click(copyButton);
+
+            expect(mockWriteText).toHaveBeenCalledWith('6+4=4');
+            expect(document.execCommand).not.toHaveBeenCalled();
+            expect(await screen.findByText('Copied!')).toBeInTheDocument();
+        });
+
+        it('handles navigator.clipboard.writeText failure', async () => {
+            mockWriteText.mockRejectedValueOnce(new Error('Clipboard error'));
+
+            render(<QuizWorkspace />);
+            const copyButton = screen.getByText('Copy');
+
+            fireEvent.click(copyButton);
+
+            // Wait for the promise to reject and the error to be caught
+            await vi.waitFor(() => {
+                expect(console.error).toHaveBeenCalledWith('Failed to copy equation: ', expect.any(Error));
+            });
+
+            // Should not show "Copied!" text if failed
+            expect(screen.queryByText('Copied!')).not.toBeInTheDocument();
+        });
+
+        it('falls back to document.execCommand when navigator.clipboard is missing', async () => {
+            // Remove clipboard API
+            Object.defineProperty(navigator, 'clipboard', {
+                value: undefined,
+                writable: true,
+                configurable: true,
+            });
+
+            // Spy on textarea creation
+            const originalCreateElement = document.createElement.bind(document);
+            let createdTextarea: HTMLTextAreaElement | null = null;
+            vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+                const el = originalCreateElement(tagName);
+                if (tagName === 'textarea') {
+                    createdTextarea = el as HTMLTextAreaElement;
+                    vi.spyOn(el, 'focus');
+                    vi.spyOn(el as HTMLTextAreaElement, 'select');
+                }
+                return el;
+            });
+
+            const appendChildSpy = vi.spyOn(document.body, 'appendChild');
+            const removeChildSpy = vi.spyOn(document.body, 'removeChild');
+
+            render(<QuizWorkspace />);
+            const copyButton = screen.getByText('Copy');
+
+            fireEvent.click(copyButton);
+
+            expect(mockWriteText).not.toHaveBeenCalled();
+            expect(document.createElement).toHaveBeenCalledWith('textarea');
+            expect(createdTextarea).not.toBeNull();
+            expect(createdTextarea!.value).toBe('6+4=4');
+            expect(appendChildSpy).toHaveBeenCalledWith(createdTextarea);
+            expect(createdTextarea!.focus).toHaveBeenCalled();
+            expect(createdTextarea!.select).toHaveBeenCalled();
+            expect(document.execCommand).toHaveBeenCalledWith('copy');
+            expect(removeChildSpy).toHaveBeenCalledWith(createdTextarea);
+            expect(await screen.findByText('Copied!')).toBeInTheDocument();
+        });
+
+        it('handles document.execCommand failure gracefully', async () => {
+            // Remove clipboard API
+            Object.defineProperty(navigator, 'clipboard', {
+                value: undefined,
+                writable: true,
+                configurable: true,
+            });
+
+            // Make execCommand throw
+            (document.execCommand as ReturnType<typeof vi.fn>).mockImplementation(() => {
+                throw new Error('execCommand failed');
+            });
+
+            const removeChildSpy = vi.spyOn(document.body, 'removeChild');
+
+            render(<QuizWorkspace />);
+            const copyButton = screen.getByText('Copy');
+
+            fireEvent.click(copyButton);
+
+            expect(console.error).toHaveBeenCalledWith('Fallback copy failed', expect.any(Error));
+            expect(screen.queryByText('Copied!')).not.toBeInTheDocument();
+
+            // ensure cleanup still happens
+            expect(removeChildSpy).toHaveBeenCalled();
+        });
+    });
 });
