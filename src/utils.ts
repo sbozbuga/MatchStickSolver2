@@ -43,6 +43,28 @@ export function getMoveHighlights(originalEq: string, modifiedEq: string): Solut
     return { removalPatterns, additionPatterns };
 }
 
+export function calculateCombinedRemovalMask(equation: string, solutions: string[]): SegmentPattern[] | undefined {
+    if (!solutions || solutions.length === 0 || !equation) return undefined;
+
+    const originalChars = equation.replace(/\s/g, '').split('').filter(c => c !== '=');
+    const combinedMask: SegmentPattern[] = Array.from({ length: originalChars.length }, () => [0, 0, 0, 0, 0, 0, 0]);
+
+    for (const sol of solutions) {
+        const { removalPatterns } = getMoveHighlights(equation, sol);
+        for (let i = 0; i < combinedMask.length; i++) {
+            if (removalPatterns[i]) {
+                for (let j = 0; j < 7; j++) {
+                    if (removalPatterns[i][j] === 1) {
+                        combinedMask[i][j] = 1;
+                    }
+                }
+            }
+        }
+    }
+
+    return combinedMask;
+}
+
 export function evaluateExpression(expr: string): number | null {
     if (!expr) return null;
 

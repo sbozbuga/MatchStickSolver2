@@ -248,17 +248,36 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
     };
 
     const handleCopyEquation = async () => {
-        if (!navigator?.clipboard?.writeText) {
-            console.error('Clipboard API not available. Ensure you are in a secure context (HTTPS).');
-            return;
-        }
+        if (navigator?.clipboard?.writeText) {
+            try {
+                await navigator.clipboard.writeText(originalEquation);
+                setIsCopied(true);
+                setTimeout(() => setIsCopied(false), 2000);
+            } catch (err) {
+                console.error('Failed to copy equation: ', err);
+            }
+        } else {
+            // Fallback for environments where clipboard API is unavailable
+            const textArea = document.createElement('textarea');
+            textArea.value = originalEquation;
 
-        try {
-            await navigator.clipboard.writeText(originalEquation);
-            setIsCopied(true);
-            setTimeout(() => setIsCopied(false), 2000);
-        } catch (err) {
-            console.error('Failed to copy equation: ', err);
+            // Avoid scrolling to bottom
+            textArea.style.top = '0';
+            textArea.style.left = '0';
+            textArea.style.position = 'fixed';
+
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                document.execCommand('copy');
+                setIsCopied(true);
+                setTimeout(() => setIsCopied(false), 2000);
+            } catch (err) {
+                console.error('Fallback copy failed', err);
+            }
+            document.body.removeChild(textArea);
         }
     };
 
