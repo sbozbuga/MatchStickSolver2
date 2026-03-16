@@ -160,11 +160,19 @@ export const solveEquation = (equation: string): string[] => {
     const patterns = chars.map(c => [...getPattern(c)] as SegmentPattern);
     const solutions = new Set<string>();
 
+    const testChars = patterns.map((p, idx) => patternToChar(p as SegmentPattern, chars[idx]));
+    let nullCount = testChars.filter(c => c === null).length;
+
     for (let i = 0; i < patterns.length; i++) {
         for (let j = 0; j < 7; j++) {
             if (patterns[i][j] === 1) {
                 // Try removing stick from i, j
                 patterns[i][j] = 0;
+
+                const oldCharI = testChars[i];
+                testChars[i] = patternToChar(patterns[i], chars[i]);
+                if (oldCharI === null && testChars[i] !== null) nullCount--;
+                else if (oldCharI !== null && testChars[i] === null) nullCount++;
 
                 for (let k = 0; k < patterns.length; k++) {
                     for (let l = 0; l < 7; l++) {
@@ -172,8 +180,12 @@ export const solveEquation = (equation: string): string[] => {
                             // Try adding stick to k, l
                             patterns[k][l] = 1;
 
-                            const testChars = patterns.map((p, idx) => patternToChar(p as SegmentPattern, chars[idx]));
-                            if (!testChars.includes(null)) {
+                            const oldCharK = testChars[k];
+                            testChars[k] = patternToChar(patterns[k], chars[k]);
+                            if (oldCharK === null && testChars[k] !== null) nullCount--;
+                            else if (oldCharK !== null && testChars[k] === null) nullCount++;
+
+                            if (nullCount === 0) {
                                 const testEq = testChars.join('');
                                 if (testEq !== equation) {
                                     try {
@@ -195,12 +207,20 @@ export const solveEquation = (equation: string): string[] => {
 
                             // Backtrack adding stick
                             patterns[k][l] = 0;
+                            const newCharK = testChars[k];
+                            testChars[k] = oldCharK;
+                            if (newCharK === null && testChars[k] !== null) nullCount--;
+                            else if (newCharK !== null && testChars[k] === null) nullCount++;
                         }
                     }
                 }
 
                 // Backtrack removing stick
                 patterns[i][j] = 1;
+                const newCharI = testChars[i];
+                testChars[i] = oldCharI;
+                if (newCharI === null && testChars[i] !== null) nullCount--;
+                else if (newCharI !== null && testChars[i] === null) nullCount++;
             }
         }
     }
@@ -233,18 +253,30 @@ export const generateRandomPuzzle = (): string => {
             const chars = getEquationChars(eq, false);
             const patterns = chars.map(c => [...getPattern(c)] as SegmentPattern);
 
+            const testChars = patterns.map((p, idx) => patternToChar(p as SegmentPattern, chars[idx]));
+            let nullCount = testChars.filter(c => c === null).length;
+
             for (let i = 0; i < patterns.length; i++) {
                 for (let j = 0; j < 7; j++) {
                     if (patterns[i][j] === 1) {
                         patterns[i][j] = 0;
+
+                        const oldCharI = testChars[i];
+                        testChars[i] = patternToChar(patterns[i], chars[i]);
+                        if (oldCharI === null && testChars[i] !== null) nullCount--;
+                        else if (oldCharI !== null && testChars[i] === null) nullCount++;
 
                         for (let k = 0; k < patterns.length; k++) {
                             for (let l = 0; l < 7; l++) {
                                 if (patterns[k][l] === 0) {
                                     patterns[k][l] = 1;
 
-                                    const testChars = patterns.map((p, idx) => patternToChar(p as SegmentPattern, chars[idx]));
-                                    if (!testChars.includes(null)) {
+                                    const oldCharK = testChars[k];
+                                    testChars[k] = patternToChar(patterns[k], chars[k]);
+                                    if (oldCharK === null && testChars[k] !== null) nullCount--;
+                                    else if (oldCharK !== null && testChars[k] === null) nullCount++;
+
+                                    if (nullCount === 0) {
                                         const testEq = testChars.join('');
                                         if (testEq !== eq) {
                                             try {
@@ -265,10 +297,18 @@ export const generateRandomPuzzle = (): string => {
                                         }
                                     }
                                     patterns[k][l] = 0;
+                                    const newCharK = testChars[k];
+                                    testChars[k] = oldCharK;
+                                    if (newCharK === null && testChars[k] !== null) nullCount--;
+                                    else if (newCharK !== null && testChars[k] === null) nullCount++;
                                 }
                             }
                         }
                         patterns[i][j] = 1;
+                        const newCharI = testChars[i];
+                        testChars[i] = oldCharI;
+                        if (newCharI === null && testChars[i] !== null) nullCount--;
+                        else if (newCharI !== null && testChars[i] === null) nullCount++;
                     }
                 }
             }
