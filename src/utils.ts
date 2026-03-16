@@ -173,7 +173,9 @@ export const solveEquation = (equation: string): string[] => {
                                             }
                                         }
                                     } catch (e) {
-                                        console.error('Error evaluating puzzle equation:', e);
+                                        // Ignore invalid equations: if evaluation fails,
+                                        // this permutation is not a valid mathematical expression
+                                        // and should be discarded without disrupting the loop.
                                     }
                                 }
                             }
@@ -243,7 +245,9 @@ export const generateRandomPuzzle = (): string => {
                                                     }
                                                 }
                                             } catch (e) {
-                                                console.error('Error evaluating puzzle equation:', e);
+                                                // Ignore invalid equations: if evaluation fails,
+                                                // this permutation is not a valid mathematical expression
+                                                // and should be discarded without disrupting the loop.
                                             }
                                         }
                                     }
