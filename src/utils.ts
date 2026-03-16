@@ -276,5 +276,7 @@ export const generateRandomPuzzle = (): string => {
         CACHED_PUZZLES = Array.from(ALL_PUZZLES);
     }
 
-    return CACHED_PUZZLES[Math.floor(Math.random() * CACHED_PUZZLES.length)];
+    const array = new Uint32Array(1);
+    crypto.getRandomValues(array);
+    return CACHED_PUZZLES[array[0] % CACHED_PUZZLES.length];
 };
