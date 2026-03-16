@@ -159,7 +159,9 @@ export const solveEquation = (equation: string): string[] => {
                                             }
                                         }
                                     } catch (e) {
-                                        // Ignore invalid equations
+                                        // Ignore invalid equations: if evaluation fails,
+                                        // this permutation is not a valid mathematical expression
+                                        // and should be discarded without disrupting the loop.
                                     }
                                 }
                             }
@@ -228,7 +230,11 @@ export const generateRandomPuzzle = (): string => {
                                                         ALL_PUZZLES.add(testEq);
                                                     }
                                                 }
-                                            } catch (e) { }
+                                            } catch (e) {
+                                                // Ignore invalid equations: if evaluation fails,
+                                                // this permutation is not a valid mathematical expression
+                                                // and should be discarded without disrupting the loop.
+                                            }
                                         }
                                     }
                                     patterns[k][l] = 0;
