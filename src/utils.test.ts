@@ -150,6 +150,18 @@ describe('patternToChar', () => {
         expect(patternToChar([...OPERATORS['-']], '')).toBe('-');
     });
 
+    it('returns valid digit when originalChar is not "="', () => {
+        expect(patternToChar([...DIGITS[5]], '+')).toBe('5');
+    });
+
+    it('returns valid operator when originalChar is not "="', () => {
+        expect(patternToChar([...OPERATORS['+']], '8')).toBe('+');
+    });
+
+    it('returns null when originalChar is not "=" but pattern matches EQUALS_SIGN', () => {
+        expect(patternToChar([...EQUALS_SIGN], '+')).toBeNull();
+    });
+
     it('returns null for completely invalid patterns', () => {
         const allZeros = [0, 0, 0, 0, 0, 0, 0] as any;
         expect(patternToChar(allZeros, '')).toBeNull();
