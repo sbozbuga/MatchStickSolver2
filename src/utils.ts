@@ -1,6 +1,20 @@
 import { DIGITS, OPERATORS, EQUALS_SIGN } from './constants';
 import type { SegmentPattern, SolutionHighlights } from './types';
 
+export function getEquationChars(eq: string, removeEquals: boolean = false): string[] {
+    const chars: string[] = [];
+    for (let i = 0; i < eq.length; i++) {
+        const charCode = eq.charCodeAt(i);
+        // Skip spaces (32), tabs (9), newlines (10), carriage returns (13)
+        if (charCode === 32 || charCode === 9 || charCode === 10 || charCode === 13) continue;
+        // Optionally skip '=' (61)
+        if (removeEquals && charCode === 61) continue;
+
+        chars.push(eq[i]);
+    }
+    return chars;
+}
+
 export function getPattern(char: string | number): SegmentPattern {
     const charStr = String(char);
     if (charStr === '+') return OPERATORS['+'];
@@ -16,8 +30,8 @@ export function getPattern(char: string | number): SegmentPattern {
 }
 
 export function getMoveHighlights(originalEq: string, modifiedEq: string): SolutionHighlights {
-    const originalChars = originalEq.replace(/\s/g, '').split('').filter(c => c !== '=');
-    const modifiedChars = modifiedEq.replace(/\s/g, '').split('').filter(c => c !== '=');
+    const originalChars = getEquationChars(originalEq, true);
+    const modifiedChars = getEquationChars(modifiedEq, true);
 
     const maxLength = Math.max(originalChars.length, modifiedChars.length);
     const removalPatterns: SegmentPattern[] = [];
@@ -46,7 +60,7 @@ export function getMoveHighlights(originalEq: string, modifiedEq: string): Solut
 export function calculateCombinedRemovalMask(equation: string, solutions: string[]): SegmentPattern[] | undefined {
     if (!solutions || solutions.length === 0 || !equation) return undefined;
 
-    const originalChars = equation.replace(/\s/g, '').split('').filter(c => c !== '=');
+    const originalChars = getEquationChars(equation, true);
     const combinedMask: SegmentPattern[] = Array.from({ length: originalChars.length }, () => [0, 0, 0, 0, 0, 0, 0]);
 
     for (const sol of solutions) {
@@ -129,7 +143,7 @@ export const solveEquation = (equation: string): string[] => {
     // SECURITY: Limit input to prevent CPU exhaustion DoS (Client thread locking)
     if (equation.length > 20) return [];
 
-    const chars = equation.replace(/\s/g, '').split('');
+    const chars = getEquationChars(equation, false);
     const patterns = chars.map(c => [...getPattern(c)] as SegmentPattern);
     const solutions = new Set<string>();
 
@@ -203,7 +217,7 @@ export const generateRandomPuzzle = (): string => {
 
         // 2. Iterate backward generating exactly 1-move permutations representing valid but incorrect puzzle states
         for (const eq of validEquations) {
-            const chars = eq.replace(/\s/g, '').split('');
+            const chars = getEquationChars(eq, false);
             const patterns = chars.map(c => [...getPattern(c)] as SegmentPattern);
 
             for (let i = 0; i < patterns.length; i++) {

@@ -63,12 +63,12 @@ describe('getPattern', () => {
 describe('calculateCombinedRemovalMask', () => {
     it('returns undefined if solutions array is empty or undefined', () => {
         expect(calculateCombinedRemovalMask('6+4=4', [])).toBeUndefined();
-        expect(calculateCombinedRemovalMask('6+4=4', undefined as any)).toBeUndefined();
+        expect(calculateCombinedRemovalMask('6+4=4', undefined as unknown as string[])).toBeUndefined();
     });
 
     it('returns undefined if equation is empty or undefined', () => {
         expect(calculateCombinedRemovalMask('', ['6+4=4'])).toBeUndefined();
-        expect(calculateCombinedRemovalMask(undefined as any, ['6+4=4'])).toBeUndefined();
+        expect(calculateCombinedRemovalMask(undefined as unknown as string, ['6+4=4'])).toBeUndefined();
     });
 
     it('returns an empty mask (all zeros) when solutions are identical to the original equation', () => {
@@ -132,7 +132,7 @@ describe('patternToChar', () => {
     });
 
     it('returns null when originalChar is "=" but pattern does not match EQUALS_SIGN', () => {
-        const invalidEqualsPattern = [1, 1, 0, 0, 0, 0, 1] as any; // slightly modified
+        const invalidEqualsPattern = [1, 1, 0, 0, 0, 0, 1] as [number, number, number, number, number, number, number]; // slightly modified
         expect(patternToChar(invalidEqualsPattern, '=')).toBeNull();
     });
 
@@ -150,12 +150,24 @@ describe('patternToChar', () => {
         expect(patternToChar([...OPERATORS['-']], '')).toBe('-');
     });
 
+    it('returns valid digit when originalChar is not "="', () => {
+        expect(patternToChar([...DIGITS[5]], '+')).toBe('5');
+    });
+
+    it('returns valid operator when originalChar is not "="', () => {
+        expect(patternToChar([...OPERATORS['+']], '8')).toBe('+');
+    });
+
+    it('returns null when originalChar is not "=" but pattern matches EQUALS_SIGN', () => {
+        expect(patternToChar([...EQUALS_SIGN], '+')).toBeNull();
+    });
+
     it('returns null for completely invalid patterns', () => {
-        const allZeros = [0, 0, 0, 0, 0, 0, 0] as any;
+        const allZeros = [0, 0, 0, 0, 0, 0, 0] as [number, number, number, number, number, number, number];
         expect(patternToChar(allZeros, '')).toBeNull();
 
-        const allOnes = [1, 1, 1, 1, 1, 1, 1] as any; // this is '8', but what if we do something else?
-        const invalidPattern = [0, 1, 0, 1, 1, 0, 0] as any;
+        const allOnes = [1, 1, 1, 1, 1, 1, 1] as [number, number, number, number, number, number, number]; // this is '8', but what if we do something else?
+        const invalidPattern = [0, 1, 0, 1, 1, 0, 0] as [number, number, number, number, number, number, number];
         expect(patternToChar(invalidPattern, '')).toBeNull();
     });
 });
@@ -178,7 +190,7 @@ describe('evaluateExpression', () => {
 
     it('returns null for empty or undefined input', () => {
         expect(evaluateExpression('')).toBeNull();
-        expect(evaluateExpression(undefined as any)).toBeNull();
+        expect(evaluateExpression(undefined as unknown as string)).toBeNull();
     });
 
     it('returns null for invalid strings containing no numbers', () => {
@@ -253,5 +265,82 @@ describe('solveEquation', () => {
         expect(solutions).toContain('0+4=4');
         expect(solutions).toContain('8-4=4');
         expect(solutions.length).toBe(2);
+    });
+});
+
+describe('getMoveHighlights', () => {
+    it('identifies a basic stick move (e.g., 6 to 0)', () => {
+        const { removalPatterns, additionPatterns } = getMoveHighlights('6+4=4', '0+4=4');
+
+        // '6' -> '0'
+        expect(removalPatterns[0]).toEqual([0, 0, 0, 1, 0, 0, 0]);
+        expect(additionPatterns[0]).toEqual([0, 0, 1, 0, 0, 0, 0]);
+
+        // '+' -> '+'
+        expect(removalPatterns[1]).toEqual([0, 0, 0, 0, 0, 0, 0]);
+        expect(additionPatterns[1]).toEqual([0, 0, 0, 0, 0, 0, 0]);
+    });
+
+    it('identifies a stick addition (e.g., 5 to 9)', () => {
+        const { removalPatterns, additionPatterns } = getMoveHighlights('5+4=9', '9+4=9');
+
+        // '5' -> '9'
+        expect(removalPatterns[0]).toEqual([0, 0, 0, 0, 0, 0, 0]);
+        expect(additionPatterns[0]).toEqual([0, 0, 1, 0, 0, 0, 0]);
+    });
+
+    it('identifies a stick removal (e.g., 8 to 9)', () => {
+        const { removalPatterns, additionPatterns } = getMoveHighlights('8+4=12', '9+4=12');
+
+        // '8' -> '9'
+        expect(removalPatterns[0]).toEqual([0, 0, 0, 0, 1, 0, 0]);
+        expect(additionPatterns[0]).toEqual([0, 0, 0, 0, 0, 0, 0]);
+    });
+
+    it('ignores whitespaces and "=" characters in both equations', () => {
+        const result1 = getMoveHighlights('6+4=4', '0+4=4');
+        const result2 = getMoveHighlights(' 6 + 4 = 4 ', ' 0 + 4 = 4 ');
+
+        expect(result1).toEqual(result2);
+    });
+
+    it('handles mismatched equation lengths by treating missing chars as empty patterns', () => {
+        const { removalPatterns, additionPatterns } = getMoveHighlights('1+1', '11+1');
+
+        // original: 1, +, 1
+        // modified: 1, 1, +, 1
+        // maxLength = 4
+
+        expect(removalPatterns.length).toBe(4);
+        expect(additionPatterns.length).toBe(4);
+
+        // index 0: '1' -> '1' (no change)
+        expect(removalPatterns[0]).toEqual([0, 0, 0, 0, 0, 0, 0]);
+        expect(additionPatterns[0]).toEqual([0, 0, 0, 0, 0, 0, 0]);
+
+        // index 1: '+' -> '1'
+        // '+' is [0, 1, 0, 1, 0, 0, 0]
+        // '1' is [0, 0, 1, 0, 0, 1, 0]
+        // removed: 1, 3
+        // added: 2, 5
+        expect(removalPatterns[1]).toEqual([0, 1, 0, 1, 0, 0, 0]);
+        expect(additionPatterns[1]).toEqual([0, 0, 1, 0, 0, 1, 0]);
+
+        // index 3: '' -> '1'
+        // '' is [0, 0, 0, 0, 0, 0, 0]
+        // '1' is [0, 0, 1, 0, 0, 1, 0]
+        // removed: none
+        // added: 2, 5
+        expect(removalPatterns[3]).toEqual([0, 0, 0, 0, 0, 0, 0]);
+        expect(additionPatterns[3]).toEqual([0, 0, 1, 0, 0, 1, 0]);
+    });
+
+    it('handles invalid characters by treating them as empty patterns', () => {
+        const { removalPatterns, additionPatterns } = getMoveHighlights('a', '1');
+
+        // 'a' is unknown -> [0, 0, 0, 0, 0, 0, 0]
+        // '1' is [0, 0, 1, 0, 0, 1, 0]
+        expect(removalPatterns[0]).toEqual([0, 0, 0, 0, 0, 0, 0]);
+        expect(additionPatterns[0]).toEqual([0, 0, 1, 0, 0, 1, 0]);
     });
 });

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Copy, Check } from 'lucide-react';
+import { Copy, Check, XCircle } from 'lucide-react';
 import type { SegmentPattern } from '../types';
 import { EqualsSign } from './EqualsSign';
 import { getPattern, patternToChar, evaluateExpression, generateRandomPuzzle } from '../utils';
@@ -18,6 +18,7 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
     const [isSolved, setIsSolved] = useState(false);
     const [isFailed, setIsFailed] = useState(false);
     const [isCopied, setIsCopied] = useState(false);
+    const [copyError, setCopyError] = useState(false);
     const [initialSticksCount, setInitialSticksCount] = useState(0);
 
     // Refs for touch tracking
@@ -254,7 +255,8 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
                 setIsCopied(true);
                 setTimeout(() => setIsCopied(false), 2000);
             } catch (err) {
-                console.error('Failed to copy equation: ', err);
+                setCopyError(true);
+                setTimeout(() => setCopyError(false), 2000);
             }
         } else {
             // Fallback for environments where clipboard API is unavailable
@@ -275,7 +277,8 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
                 setIsCopied(true);
                 setTimeout(() => setIsCopied(false), 2000);
             } catch (err) {
-                console.error('Fallback copy failed', err);
+                setCopyError(true);
+                setTimeout(() => setCopyError(false), 2000);
             }
             document.body.removeChild(textArea);
         }
@@ -418,12 +421,14 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({ onSolveSuccess }) 
                             onClick={handleCopyEquation}
                             className={`px-6 py-2 font-medium rounded-lg border transition flex items-center gap-2 ${isCopied
                                     ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50'
-                                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border-slate-600'
+                                    : copyError
+                                        ? 'bg-red-500/20 text-red-400 border-red-500/50'
+                                        : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border-slate-600'
                                 }`}
                             title="Copy Original Equation"
                         >
-                            {isCopied ? <Check size={18} /> : <Copy size={18} />}
-                            {isCopied ? 'Copied!' : 'Copy'}
+                            {isCopied ? <Check size={18} /> : copyError ? <XCircle size={18} /> : <Copy size={18} />}
+                            {isCopied ? 'Copied!' : copyError ? 'Failed!' : 'Copy'}
                         </button>
                         <button
                             onClick={handleReset}
