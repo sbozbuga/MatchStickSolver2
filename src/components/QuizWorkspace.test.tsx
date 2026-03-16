@@ -141,9 +141,6 @@ describe('QuizWorkspace', () => {
 
             // Mock document.execCommand
             document.execCommand = vi.fn().mockReturnValue(true);
-
-            // Mock console.error to keep test output clean
-            vi.spyOn(console, 'error').mockImplementation(() => {});
         });
 
         afterEach(() => {
@@ -175,10 +172,8 @@ describe('QuizWorkspace', () => {
 
             fireEvent.click(copyButton);
 
-            // Wait for the promise to reject and the error to be caught
-            await vi.waitFor(() => {
-                expect(console.error).toHaveBeenCalledWith('Failed to copy equation: ', expect.any(Error));
-            });
+            // Wait for the promise to reject and the UI to update to Failed!
+            expect(await screen.findByText('Failed!')).toBeInTheDocument();
 
             // Should not show "Copied!" text if failed
             expect(screen.queryByText('Copied!')).not.toBeInTheDocument();
@@ -245,7 +240,8 @@ describe('QuizWorkspace', () => {
 
             fireEvent.click(copyButton);
 
-            expect(console.error).toHaveBeenCalledWith('Fallback copy failed', expect.any(Error));
+            // Wait for the UI to show the failed state
+            expect(await screen.findByText('Failed!')).toBeInTheDocument();
             expect(screen.queryByText('Copied!')).not.toBeInTheDocument();
 
             // ensure cleanup still happens
