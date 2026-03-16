@@ -63,12 +63,12 @@ describe('getPattern', () => {
 describe('calculateCombinedRemovalMask', () => {
     it('returns undefined if solutions array is empty or undefined', () => {
         expect(calculateCombinedRemovalMask('6+4=4', [])).toBeUndefined();
-        expect(calculateCombinedRemovalMask('6+4=4', undefined as any)).toBeUndefined();
+        expect(calculateCombinedRemovalMask('6+4=4', undefined as unknown as string[])).toBeUndefined();
     });
 
     it('returns undefined if equation is empty or undefined', () => {
         expect(calculateCombinedRemovalMask('', ['6+4=4'])).toBeUndefined();
-        expect(calculateCombinedRemovalMask(undefined as any, ['6+4=4'])).toBeUndefined();
+        expect(calculateCombinedRemovalMask(undefined as unknown as string, ['6+4=4'])).toBeUndefined();
     });
 
     it('returns an empty mask (all zeros) when solutions are identical to the original equation', () => {
@@ -132,7 +132,7 @@ describe('patternToChar', () => {
     });
 
     it('returns null when originalChar is "=" but pattern does not match EQUALS_SIGN', () => {
-        const invalidEqualsPattern = [1, 1, 0, 0, 0, 0, 1] as any; // slightly modified
+        const invalidEqualsPattern = [1, 1, 0, 0, 0, 0, 1] as [number, number, number, number, number, number, number]; // slightly modified
         expect(patternToChar(invalidEqualsPattern, '=')).toBeNull();
     });
 
@@ -151,11 +151,11 @@ describe('patternToChar', () => {
     });
 
     it('returns null for completely invalid patterns', () => {
-        const allZeros = [0, 0, 0, 0, 0, 0, 0] as any;
+        const allZeros = [0, 0, 0, 0, 0, 0, 0] as [number, number, number, number, number, number, number];
         expect(patternToChar(allZeros, '')).toBeNull();
 
-        const allOnes = [1, 1, 1, 1, 1, 1, 1] as any; // this is '8', but what if we do something else?
-        const invalidPattern = [0, 1, 0, 1, 1, 0, 0] as any;
+        const allOnes = [1, 1, 1, 1, 1, 1, 1] as [number, number, number, number, number, number, number]; // this is '8', but what if we do something else?
+        const invalidPattern = [0, 1, 0, 1, 1, 0, 0] as [number, number, number, number, number, number, number];
         expect(patternToChar(invalidPattern, '')).toBeNull();
     });
 });
@@ -178,7 +178,7 @@ describe('evaluateExpression', () => {
 
     it('returns null for empty or undefined input', () => {
         expect(evaluateExpression('')).toBeNull();
-        expect(evaluateExpression(undefined as any)).toBeNull();
+        expect(evaluateExpression(undefined as unknown as string)).toBeNull();
     });
 
     it('returns null for invalid strings containing no numbers', () => {
