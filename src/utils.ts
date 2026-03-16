@@ -1,6 +1,11 @@
 import { DIGITS, OPERATORS, EQUALS_SIGN } from './constants';
 import type { SegmentPattern, SolutionHighlights } from './types';
 
+const CHAR_CODE_0 = 48;
+const CHAR_CODE_9 = 57;
+const CHAR_CODE_PLUS = 43;
+const CHAR_CODE_MINUS = 45;
+
 export function getPattern(char: string | number): SegmentPattern {
     const charStr = String(char);
     if (charStr === '+') return OPERATORS['+'];
@@ -76,16 +81,16 @@ export function evaluateExpression(expr: string): number | null {
     for (let i = 0; i < expr.length; i++) {
         const charCode = expr.charCodeAt(i);
 
-        if (charCode >= 48 && charCode <= 57) { // '0' - '9'
-            currentNum = currentNum * 10 + (charCode - 48);
+        if (charCode >= CHAR_CODE_0 && charCode <= CHAR_CODE_9) {
+            currentNum = currentNum * 10 + (charCode - CHAR_CODE_0);
             hasNum = true;
-        } else if (charCode === 43) { // '+'
+        } else if (charCode === CHAR_CODE_PLUS) {
             if (!hasNum) return null;
             result += currentOp * currentNum;
             currentOp = 1;
             currentNum = 0;
             hasNum = false;
-        } else if (charCode === 45) { // '-'
+        } else if (charCode === CHAR_CODE_MINUS) {
             if (!hasNum) return null;
             result += currentOp * currentNum;
             currentOp = -1;
