@@ -7,16 +7,38 @@ const CHAR_CODE_PLUS = 43;
 const CHAR_CODE_MINUS = 45;
 
 export function getPattern(char: string | number): SegmentPattern {
-    const charStr = String(char);
-    if (charStr === '+') return OPERATORS['+'];
-    if (charStr === '-') return OPERATORS['-'];
-    if (charStr === '=') return EQUALS_SIGN;
-
-    const digit = parseInt(charStr, 10);
-    if (!isNaN(digit) && DIGITS[digit]) {
-        return DIGITS[digit];
+    if (typeof char === 'string') {
+        if (char.length === 1) {
+            const code = char.charCodeAt(0);
+            if (code >= 48 && code <= 57) return DIGITS[code - 48];
+            if (code === 43) return OPERATORS['+'];
+            if (code === 45) return OPERATORS['-'];
+            if (code === 61) return EQUALS_SIGN;
+        } else {
+            const digit = parseInt(char, 10);
+            if (!isNaN(digit) && DIGITS[digit]) return DIGITS[digit];
+        }
+        return [0, 0, 0, 0, 0, 0, 0];
     }
 
+    if (typeof char === 'number') {
+        if (char >= 0 && char <= 9 && Number.isInteger(char)) {
+            return DIGITS[char];
+        }
+        return [0, 0, 0, 0, 0, 0, 0];
+    }
+
+    const charStr = String(char);
+    if (charStr.length === 1) {
+        const code = charStr.charCodeAt(0);
+        if (code >= 48 && code <= 57) return DIGITS[code - 48];
+        if (code === 43) return OPERATORS['+'];
+        if (code === 45) return OPERATORS['-'];
+        if (code === 61) return EQUALS_SIGN;
+    } else {
+        const digit = parseInt(charStr, 10);
+        if (!isNaN(digit) && DIGITS[digit]) return DIGITS[digit];
+    }
     return [0, 0, 0, 0, 0, 0, 0];
 }
 
