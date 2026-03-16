@@ -159,7 +159,7 @@ export const solveEquation = (equation: string): string[] => {
                                             }
                                         }
                                     } catch (e) {
-                                        // Ignore invalid equations
+                                        console.error('Error evaluating puzzle equation:', e);
                                     }
                                 }
                             }
@@ -228,7 +228,9 @@ export const generateRandomPuzzle = (): string => {
                                                         ALL_PUZZLES.add(testEq);
                                                     }
                                                 }
-                                            } catch (e) { }
+                                            } catch (e) {
+                                                console.error('Error evaluating puzzle equation:', e);
+                                            }
                                         }
                                     }
                                     patterns[k][l] = 0;
