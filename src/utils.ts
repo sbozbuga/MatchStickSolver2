@@ -21,8 +21,8 @@ export function getPattern(char: string | number): SegmentPattern {
 }
 
 export function getMoveHighlights(originalEq: string, modifiedEq: string): SolutionHighlights {
-    const originalChars = originalEq.replace(/\s/g, '').split('').filter(c => c !== '=');
-    const modifiedChars = modifiedEq.replace(/\s/g, '').split('').filter(c => c !== '=');
+    const originalChars = getEquationChars(originalEq, true);
+    const modifiedChars = getEquationChars(modifiedEq, true);
 
     const maxLength = Math.max(originalChars.length, modifiedChars.length);
     const removalPatterns: SegmentPattern[] = [];
@@ -51,7 +51,7 @@ export function getMoveHighlights(originalEq: string, modifiedEq: string): Solut
 export function calculateCombinedRemovalMask(equation: string, solutions: string[]): SegmentPattern[] | undefined {
     if (!solutions || solutions.length === 0 || !equation) return undefined;
 
-    const originalChars = equation.replace(/\s/g, '').split('').filter(c => c !== '=');
+    const originalChars = getEquationChars(equation, true);
     const combinedMask: SegmentPattern[] = Array.from({ length: originalChars.length }, () => [0, 0, 0, 0, 0, 0, 0]);
 
     for (const sol of solutions) {
@@ -134,7 +134,7 @@ export const solveEquation = (equation: string): string[] => {
     // SECURITY: Limit input to prevent CPU exhaustion DoS (Client thread locking)
     if (equation.length > 20) return [];
 
-    const chars = equation.replace(/\s/g, '').split('');
+    const chars = getEquationChars(equation, false);
     const patterns = chars.map(c => [...getPattern(c)] as SegmentPattern);
     const solutions = new Set<string>();
 
@@ -164,7 +164,9 @@ export const solveEquation = (equation: string): string[] => {
                                             }
                                         }
                                     } catch (e) {
-                                        // Ignore invalid equations
+                                        // Ignore invalid equations: if evaluation fails,
+                                        // this permutation is not a valid mathematical expression
+                                        // and should be discarded without disrupting the loop.
                                     }
                                 }
                             }
@@ -206,7 +208,7 @@ export const generateRandomPuzzle = (): string => {
 
         // 2. Iterate backward generating exactly 1-move permutations representing valid but incorrect puzzle states
         for (const eq of validEquations) {
-            const chars = eq.replace(/\s/g, '').split('');
+            const chars = getEquationChars(eq, false);
             const patterns = chars.map(c => [...getPattern(c)] as SegmentPattern);
 
             for (let i = 0; i < patterns.length; i++) {
@@ -233,7 +235,11 @@ export const generateRandomPuzzle = (): string => {
                                                         ALL_PUZZLES.add(testEq);
                                                     }
                                                 }
-                                            } catch (e) { }
+                                            } catch (e) {
+                                                // Ignore invalid equations: if evaluation fails,
+                                                // this permutation is not a valid mathematical expression
+                                                // and should be discarded without disrupting the loop.
+                                            }
                                         }
                                     }
                                     patterns[k][l] = 0;
