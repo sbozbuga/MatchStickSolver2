@@ -7,6 +7,23 @@ import { evaluateExpression } from './evaluate';
 import { DIGITS, OPERATORS, EQUALS_SIGN } from './constants';
 
 describe('generateRandomPuzzle', () => {
+    it('catches and ignores evaluation errors gracefully and continues searching', () => {
+        const originalEvaluate = evaluator.evaluateExpression;
+        let thrown = false;
+        const spy = vi.spyOn(evaluator, 'evaluateExpression').mockImplementation((expr) => {
+            if (!thrown) {
+                thrown = true;
+                throw new Error('Test Error');
+            }
+            return originalEvaluate(expr);
+        });
+
+        expect(() => generateRandomPuzzle()).not.toThrow();
+        expect(thrown).toBe(true);
+
+        spy.mockRestore();
+    });
+
     it('returns a string in the valid format A+/-B=C', () => {
         const puzzle = generateRandomPuzzle();
         expect(puzzle).toMatch(/^\d[+-]\d=\d$/);
