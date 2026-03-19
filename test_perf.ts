@@ -1,4 +1,4 @@
-import { evaluateExpression } from './src/utils.js';
+import { evaluateExpression } from './src/evaluate.js';
 
 function original() {
     const validEquations: string[] = [];

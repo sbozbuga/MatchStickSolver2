@@ -58,17 +58,6 @@ export function getPattern(char: string | number): SegmentPattern {
     return [0, 0, 0, 0, 0, 0, 0];
 }
 
-export function getEquationChars(equation: string, removeEquals: boolean): string[] {
-    const chars: string[] = [];
-    for (let i = 0; i < equation.length; i++) {
-        const code = equation.charCodeAt(i);
-        if (code !== 32 && (!removeEquals || code !== 61)) {
-            chars.push(equation[i]);
-        }
-    }
-    return chars;
-}
-
 export function getMoveHighlights(originalEq: string, modifiedEq: string): SolutionHighlights {
     const originalChars = getEquationChars(originalEq, true);
     const modifiedChars = getEquationChars(modifiedEq, true);
@@ -267,7 +256,7 @@ export const solveEquation = (equation: string): string[] => {
                             else if (newCharK !== null && testChars[k] === null) nullCount++;
                         }
                     }
-                );
+                }
 
                 // Backtrack removing stick
                 patterns[i][j] = 1;
@@ -369,7 +358,7 @@ export const generateRandomPuzzle = (): string => {
                                     else if (newCharK !== null && testChars[k] === null) nullCount++;
                                 }
                             }
-                        );
+                        }
 
                         patterns[i][j] = 1;
                         const newCharI = testChars[i];
@@ -387,13 +376,3 @@ export const generateRandomPuzzle = (): string => {
     crypto.getRandomValues(array);
     return CACHED_PUZZLES[array[0] % CACHED_PUZZLES.length];
 };
-export function getEquationChars(equation: string, excludeEquals: boolean = false): string[] {
-    const chars: string[] = [];
-    for (let i = 0; i < equation.length; i++) {
-        const code = equation.charCodeAt(i);
-        if (code !== 32 && !(excludeEquals && code === 61)) {
-            chars.push(equation[i]);
-        }
-    }
-    return chars;
-}
