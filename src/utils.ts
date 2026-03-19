@@ -6,6 +6,21 @@ const CHAR_CODE_9 = 57;
 const CHAR_CODE_PLUS = 43;
 const CHAR_CODE_MINUS = 45;
 
+export function getEquationChars(equation: string, removeEquals: boolean): string[] {
+    const chars: string[] = [];
+    for (let i = 0; i < equation.length; i++) {
+        const charCode = equation.charCodeAt(i);
+        // Ignore space (32)
+        if (charCode !== 32) {
+            // Ignore equals (61) if removeEquals is true
+            if (!(removeEquals && charCode === 61)) {
+                chars.push(equation[i]);
+            }
+        }
+    }
+    return chars;
+}
+
 export function getPattern(char: string | number): SegmentPattern {
     if (typeof char === 'string') {
         if (char.length === 1) {
@@ -163,6 +178,54 @@ export function patternToChar(pattern: SegmentPattern, originalChar: string): st
     return null;
 }
 
+function tryAddStickAndEvaluate(
+    patterns: SegmentPattern[],
+    testChars: (string | null)[],
+    chars: string[],
+    initialNullCount: number,
+    onValidEquation: (testEq: string, leftVal: number, rightVal: number) => void
+) {
+    let nullCount = initialNullCount;
+    for (let k = 0; k < patterns.length; k++) {
+        for (let l = 0; l < 7; l++) {
+            if (patterns[k][l] === 0) {
+                // Try adding stick to k, l
+                patterns[k][l] = 1;
+
+                const oldCharK = testChars[k];
+                testChars[k] = patternToChar(patterns[k], chars[k]);
+                if (oldCharK === null && testChars[k] !== null) nullCount--;
+                else if (oldCharK !== null && testChars[k] === null) nullCount++;
+
+                if (nullCount === 0) {
+                    const testEq = testChars.join('');
+                    try {
+                        const [left, right] = testEq.split('=');
+                        if (left && right) {
+                            const leftVal = evaluateExpression(left);
+                            const rightVal = evaluateExpression(right);
+                            if (leftVal !== null && rightVal !== null) {
+                                onValidEquation(testEq, leftVal, rightVal);
+                            }
+                        }
+                    } catch (e) {
+                        // Ignore invalid equations: if evaluation fails,
+                        // this permutation is not a valid mathematical expression
+                        // and should be discarded without disrupting the loop.
+                    }
+                }
+
+                // Backtrack adding stick
+                patterns[k][l] = 0;
+                const newCharK = testChars[k];
+                testChars[k] = oldCharK;
+                if (newCharK === null && testChars[k] !== null) nullCount--;
+                else if (newCharK !== null && testChars[k] === null) nullCount++;
+            }
+        }
+    }
+}
+
 export const solveEquation = (equation: string): string[] => {
     // SECURITY: Limit input to prevent CPU exhaustion DoS (Client thread locking)
     if (equation.length > 20) return [];
@@ -236,7 +299,7 @@ export const solveEquation = (equation: string): string[] => {
                             else if (newCharK !== null && testChars[k] === null) nullCount++;
                         }
                     }
-                }
+                );
 
                 // Backtrack removing stick
                 patterns[i][j] = 1;
@@ -338,7 +401,8 @@ export const generateRandomPuzzle = (): string => {
                                     else if (newCharK !== null && testChars[k] === null) nullCount++;
                                 }
                             }
-                        }
+                        );
+
                         patterns[i][j] = 1;
                         const newCharI = testChars[i];
                         testChars[i] = oldCharI;
