@@ -7,19 +7,19 @@ import { evaluateExpression } from './evaluate';
 import { DIGITS, OPERATORS, EQUALS_SIGN } from './constants';
 
 describe('generateRandomPuzzle', () => {
-    it('catches and ignores evaluation errors gracefully and continues searching', () => {
+    it('skips invalid equations gracefully when evaluateExpression returns null', () => {
         const originalEvaluate = evaluator.evaluateExpression;
-        let thrown = false;
+        let returnedNull = false;
         const spy = vi.spyOn(evaluator, 'evaluateExpression').mockImplementation((expr) => {
-            if (!thrown) {
-                thrown = true;
-                throw new Error('Test Error');
+            if (!returnedNull) {
+                returnedNull = true;
+                return null;
             }
             return originalEvaluate(expr);
         });
 
         expect(() => generateRandomPuzzle()).not.toThrow();
-        expect(thrown).toBe(true);
+        expect(returnedNull).toBe(true);
 
         spy.mockRestore();
     });
@@ -230,10 +230,9 @@ describe('evaluateExpression', () => {
 
 describe('solveEquation', () => {
     it('does not crash when encountering malformed generated equations', () => {
-        // We will mock evaluateExpression locally or rely on malformed strings
-        // Since solveEquation imports and uses evaluateExpression, we can spy on it.
+        // evaluateExpression returns null for invalid strings safely
         const spy = vi.spyOn(evaluator, 'evaluateExpression').mockImplementation(() => {
-            throw new Error('Test Error');
+            return null;
         });
 
         expect(() => solveEquation('====')).not.toThrow();
@@ -243,10 +242,10 @@ describe('solveEquation', () => {
     });
 
 
-    it('catches and ignores evaluation errors gracefully and continues searching', () => {
+    it('skips invalid equations gracefully when evaluateExpression returns null and continues searching', () => {
         const originalEvaluate = evaluator.evaluateExpression;
         const spy = vi.spyOn(evaluator, 'evaluateExpression').mockImplementation((expr) => {
-            if (expr === '0+4') throw new Error('Test Error');
+            if (expr === '0+4') return null;
             return originalEvaluate(expr);
         });
 
