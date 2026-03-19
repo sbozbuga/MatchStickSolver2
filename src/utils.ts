@@ -57,6 +57,17 @@ export function getPattern(char: string | number): SegmentPattern {
     return [0, 0, 0, 0, 0, 0, 0];
 }
 
+export function getEquationChars(equation: string, removeEquals: boolean): string[] {
+    const chars: string[] = [];
+    for (let i = 0; i < equation.length; i++) {
+        const code = equation.charCodeAt(i);
+        if (code !== 32 && (!removeEquals || code !== 61)) {
+            chars.push(equation[i]);
+        }
+    }
+    return chars;
+}
+
 export function getMoveHighlights(originalEq: string, modifiedEq: string): SolutionHighlights {
     const originalChars = getEquationChars(originalEq, true);
     const modifiedChars = getEquationChars(modifiedEq, true);
@@ -237,14 +248,55 @@ export const solveEquation = (equation: string): string[] => {
                 if (oldCharI === null && testChars[i] !== null) nullCount--;
                 else if (oldCharI !== null && testChars[i] === null) nullCount++;
 
-                tryAddStickAndEvaluate(
-                    patterns,
-                    testChars,
-                    chars,
-                    nullCount,
-                    (testEq, leftVal, rightVal) => {
-                        if (testEq !== equation && leftVal === rightVal) {
-                            solutions.add(testEq);
+                for (let k = 0; k < patterns.length; k++) {
+                    for (let l = 0; l < 7; l++) {
+                        if (patterns[k][l] === 0) {
+                            // Try adding stick to k, l
+                            patterns[k][l] = 1;
+
+                            const oldCharK = testChars[k];
+                            testChars[k] = patternToChar(patterns[k], chars[k]);
+                            if (oldCharK === null && testChars[k] !== null) nullCount--;
+                            else if (oldCharK !== null && testChars[k] === null) nullCount++;
+
+                            if (nullCount === 0) {
+                                let isEq = true;
+                                for (let ci = 0; ci < chars.length; ci++) {
+                                    if (testChars[ci] !== chars[ci]) {
+                                        isEq = false;
+                                        break;
+                                    }
+                                }
+
+                                if (!isEq) {
+                                    let eqIdx = testChars.indexOf('=');
+                                    if (eqIdx > 0 && eqIdx < testChars.length - 1) {
+                                        try {
+                                            let leftStr = '';
+                                            for (let m = 0; m < eqIdx; m++) leftStr += testChars[m];
+                                            let rightStr = '';
+                                            for (let m = eqIdx + 1; m < testChars.length; m++) rightStr += testChars[m];
+
+                                            const leftVal = evaluateExpression(leftStr);
+                                            const rightVal = evaluateExpression(rightStr);
+                                            if (leftVal !== null && rightVal !== null && leftVal === rightVal) {
+                                                solutions.add(testChars.join(''));
+                                            }
+                                        } catch (e) {
+                                            // Ignore invalid equations: if evaluation fails,
+                                            // this permutation is not a valid mathematical expression
+                                            // and should be discarded without disrupting the loop.
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Backtrack adding stick
+                            patterns[k][l] = 0;
+                            const newCharK = testChars[k];
+                            testChars[k] = oldCharK;
+                            if (newCharK === null && testChars[k] !== null) nullCount--;
+                            else if (newCharK !== null && testChars[k] === null) nullCount++;
                         }
                     }
                 );
@@ -300,15 +352,53 @@ export const generateRandomPuzzle = (): string => {
                         if (oldCharI === null && testChars[i] !== null) nullCount--;
                         else if (oldCharI !== null && testChars[i] === null) nullCount++;
 
-                        tryAddStickAndEvaluate(
-                            patterns,
-                            testChars,
-                            chars,
-                            nullCount,
-                            (testEq, leftVal, rightVal) => {
-                                // It MUST evaluate falsely explicitly so it operates as a puzzle and not an identical solved clone natively
-                                if (testEq !== eq && leftVal !== rightVal) {
-                                    ALL_PUZZLES.add(testEq);
+                        for (let k = 0; k < patterns.length; k++) {
+                            for (let l = 0; l < 7; l++) {
+                                if (patterns[k][l] === 0) {
+                                    patterns[k][l] = 1;
+
+                                    const oldCharK = testChars[k];
+                                    testChars[k] = patternToChar(patterns[k], chars[k]);
+                                    if (oldCharK === null && testChars[k] !== null) nullCount--;
+                                    else if (oldCharK !== null && testChars[k] === null) nullCount++;
+
+                                    if (nullCount === 0) {
+                                        let isEq = true;
+                                        for (let ci = 0; ci < chars.length; ci++) {
+                                            if (testChars[ci] !== chars[ci]) {
+                                                isEq = false;
+                                                break;
+                                            }
+                                        }
+
+                                        if (!isEq) {
+                                            let eqIdx = testChars.indexOf('=');
+                                            if (eqIdx > 0 && eqIdx < testChars.length - 1) {
+                                                try {
+                                                    let leftStr = '';
+                                                    for (let m = 0; m < eqIdx; m++) leftStr += testChars[m];
+                                                    let rightStr = '';
+                                                    for (let m = eqIdx + 1; m < testChars.length; m++) rightStr += testChars[m];
+
+                                                    const leftVal = evaluateExpression(leftStr);
+                                                    const rightVal = evaluateExpression(rightStr);
+                                                    // It MUST evaluate falsely explicitly so it operates as a puzzle and not an identical solved clone natively
+                                                    if (leftVal !== null && rightVal !== null && leftVal !== rightVal) {
+                                                        ALL_PUZZLES.add(testChars.join(''));
+                                                    }
+                                                } catch (e) {
+                                                    // Ignore invalid equations: if evaluation fails,
+                                                    // this permutation is not a valid mathematical expression
+                                                    // and should be discarded without disrupting the loop.
+                                                }
+                                            }
+                                        }
+                                    }
+                                    patterns[k][l] = 0;
+                                    const newCharK = testChars[k];
+                                    testChars[k] = oldCharK;
+                                    if (newCharK === null && testChars[k] !== null) nullCount--;
+                                    else if (newCharK !== null && testChars[k] === null) nullCount++;
                                 }
                             }
                         );
