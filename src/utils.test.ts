@@ -1,7 +1,9 @@
+import * as evaluator from './evaluate';
 import { describe, it, expect } from 'vitest';
 import * as utils from './utils';
 import { vi } from 'vitest';
-import { calculateCombinedRemovalMask, getMoveHighlights, evaluateExpression, generateRandomPuzzle, getPattern, patternToChar, solveEquation } from './utils';
+import { calculateCombinedRemovalMask, getMoveHighlights, generateRandomPuzzle, getPattern, patternToChar, solveEquation } from './utils';
+import { evaluateExpression } from './evaluate';
 import { DIGITS, OPERATORS, EQUALS_SIGN } from './constants';
 
 describe('generateRandomPuzzle', () => {
@@ -213,12 +215,27 @@ describe('solveEquation', () => {
     it('does not crash when encountering malformed generated equations', () => {
         // We will mock evaluateExpression locally or rely on malformed strings
         // Since solveEquation imports and uses evaluateExpression, we can spy on it.
-        const spy = vi.spyOn(utils, 'evaluateExpression').mockImplementation(() => {
+        const spy = vi.spyOn(evaluator, 'evaluateExpression').mockImplementation(() => {
             throw new Error('Test Error');
         });
 
         expect(() => solveEquation('====')).not.toThrow();
         expect(solveEquation('====')).toEqual([]);
+
+        spy.mockRestore();
+    });
+
+
+    it('catches and ignores evaluation errors gracefully and continues searching', () => {
+        const originalEvaluate = evaluator.evaluateExpression;
+        const spy = vi.spyOn(evaluator, 'evaluateExpression').mockImplementation((expr) => {
+            if (expr === '0+4') throw new Error('Test Error');
+            return originalEvaluate(expr);
+        });
+
+        expect(() => solveEquation('8-4=4')).not.toThrow();
+        expect(solveEquation('8-4=4')).toEqual([]);
+        expect(spy).toHaveBeenCalledWith('0+4');
 
         spy.mockRestore();
     });

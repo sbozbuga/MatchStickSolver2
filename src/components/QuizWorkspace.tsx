@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Copy, Check, XCircle } from 'lucide-react';
 import type { SegmentPattern } from '../types';
 import { EqualsSign } from './EqualsSign';
-import { getPattern, patternToChar, evaluateExpression, generateRandomPuzzle } from '../utils';
+import { getPattern, patternToChar, generateRandomPuzzle } from '../utils';
+import { evaluateExpression } from '../evaluate';
 
 interface QuizWorkspaceProps {
     onSolveSuccess?: () => void;

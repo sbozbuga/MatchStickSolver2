@@ -1,3 +1,4 @@
+import { evaluateExpression } from './evaluate';
 import { DIGITS, OPERATORS, EQUALS_SIGN } from './constants';
 import type { SegmentPattern, SolutionHighlights } from './types';
 
@@ -92,40 +93,7 @@ export function calculateCombinedRemovalMask(equation: string, solutions: string
     return combinedMask;
 }
 
-export function evaluateExpression(expr: string): number | null {
-    if (!expr) return null;
 
-    let result = 0;
-    let currentNum = 0;
-    let hasNum = false;
-    let currentOp = 1;
-
-    for (let i = 0; i < expr.length; i++) {
-        const charCode = expr.charCodeAt(i);
-
-        if (charCode >= CHAR_CODE_0 && charCode <= CHAR_CODE_9) {
-            currentNum = currentNum * 10 + (charCode - CHAR_CODE_0);
-            hasNum = true;
-        } else if (charCode === CHAR_CODE_PLUS) {
-            if (!hasNum) return null;
-            result += currentOp * currentNum;
-            currentOp = 1;
-            currentNum = 0;
-            hasNum = false;
-        } else if (charCode === CHAR_CODE_MINUS) {
-            if (!hasNum) return null;
-            result += currentOp * currentNum;
-            currentOp = -1;
-            currentNum = 0;
-            hasNum = false;
-        } else {
-            return null; // Invalid character
-        }
-    }
-
-    if (!hasNum) return null;
-    return result + (currentOp * currentNum);
-}
 
 function isMatch(p1: SegmentPattern, p2: SegmentPattern): boolean {
     for (let i = 0; i < 7; i++) {
@@ -320,3 +288,13 @@ export const generateRandomPuzzle = (): string => {
     crypto.getRandomValues(array);
     return CACHED_PUZZLES[array[0] % CACHED_PUZZLES.length];
 };
+export function getEquationChars(equation: string, excludeEquals: boolean = false): string[] {
+    const chars: string[] = [];
+    for (let i = 0; i < equation.length; i++) {
+        const code = equation.charCodeAt(i);
+        if (code !== 32 && !(excludeEquals && code === 61)) {
+            chars.push(equation[i]);
+        }
+    }
+    return chars;
+}
