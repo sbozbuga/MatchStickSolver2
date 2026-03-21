@@ -7,15 +7,15 @@ import { evaluateExpression } from './evaluate';
 import { DIGITS, OPERATORS, EQUALS_SIGN } from './constants';
 
 describe('generateRandomPuzzle', () => {
-    it('skips invalid equations gracefully when evaluateExpression returns null', () => {
-        const originalEvaluate = evaluator.evaluateExpression;
+    it('skips invalid equations gracefully when evaluateCharArray returns null', () => {
+        const originalEvaluate = evaluator.evaluateCharArray;
         let returnedNull = false;
-        const spy = vi.spyOn(evaluator, 'evaluateExpression').mockImplementation((expr) => {
+        const spy = vi.spyOn(evaluator, 'evaluateCharArray').mockImplementation((chars, start, end) => {
             if (!returnedNull) {
                 returnedNull = true;
                 return null;
             }
-            return originalEvaluate(expr);
+            return originalEvaluate(chars, start, end);
         });
 
         expect(() => generateRandomPuzzle()).not.toThrow();
@@ -230,8 +230,8 @@ describe('evaluateExpression', () => {
 
 describe('solveEquation', () => {
     it('does not crash when encountering malformed generated equations', () => {
-        // evaluateExpression returns null for invalid strings safely
-        const spy = vi.spyOn(evaluator, 'evaluateExpression').mockImplementation(() => {
+        // evaluateCharArray returns null for invalid strings safely
+        const spy = vi.spyOn(evaluator, 'evaluateCharArray').mockImplementation(() => {
             return null;
         });
 
@@ -242,16 +242,21 @@ describe('solveEquation', () => {
     });
 
 
-    it('skips invalid equations gracefully when evaluateExpression returns null and continues searching', () => {
-        const originalEvaluate = evaluator.evaluateExpression;
-        const spy = vi.spyOn(evaluator, 'evaluateExpression').mockImplementation((expr) => {
-            if (expr === '0+4') return null;
-            return originalEvaluate(expr);
+    it('skips invalid equations gracefully when evaluateCharArray returns null and continues searching', () => {
+        const originalEvaluate = evaluator.evaluateCharArray;
+        let calledWithZeroPlusFour = false;
+        const spy = vi.spyOn(evaluator, 'evaluateCharArray').mockImplementation((chars, start, end) => {
+            const expr = chars.slice(start, end).join('');
+            if (expr === '0+4') {
+                calledWithZeroPlusFour = true;
+                return null;
+            }
+            return originalEvaluate(chars, start, end);
         });
 
         expect(() => solveEquation('8-4=4')).not.toThrow();
         expect(solveEquation('8-4=4')).toEqual([]);
-        expect(spy).toHaveBeenCalledWith('0+4');
+        expect(calledWithZeroPlusFour).toBe(true);
 
         spy.mockRestore();
     });
