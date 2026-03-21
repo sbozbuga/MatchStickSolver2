@@ -1,4 +1,4 @@
-import { evaluateExpression } from "./evaluate";
+import { evaluateExpression, evaluateCharArray } from "./evaluate";
 import { DIGITS, OPERATORS, EQUALS_SIGN } from "./constants";
 import type { SegmentPattern, SolutionHighlights } from "./types";
 
@@ -195,14 +195,8 @@ export const solveEquation = (equation: string): string[] => {
                 if (!isEq) {
                   let eqIdx = testChars.indexOf("=");
                   if (eqIdx > 0 && eqIdx < testChars.length - 1) {
-                    let leftStr = "";
-                    for (let m = 0; m < eqIdx; m++) leftStr += testChars[m];
-                    let rightStr = "";
-                    for (let m = eqIdx + 1; m < testChars.length; m++)
-                      rightStr += testChars[m];
-
-                    const leftVal = evaluateExpression(leftStr);
-                    const rightVal = evaluateExpression(rightStr);
+                      const leftVal = evaluateCharArray(testChars, 0, eqIdx);
+                      const rightVal = evaluateCharArray(testChars, eqIdx + 1, testChars.length);
                     if (
                       leftVal !== null &&
                       rightVal !== null &&
@@ -300,14 +294,8 @@ export const generateRandomPuzzle = (): string => {
                     if (!isEq) {
                       let eqIdx = testChars.indexOf("=");
                       if (eqIdx > 0 && eqIdx < testChars.length - 1) {
-                        let leftStr = "";
-                        for (let m = 0; m < eqIdx; m++) leftStr += testChars[m];
-                        let rightStr = "";
-                        for (let m = eqIdx + 1; m < testChars.length; m++)
-                          rightStr += testChars[m];
-
-                        const leftVal = evaluateExpression(leftStr);
-                        const rightVal = evaluateExpression(rightStr);
+                        const leftVal = evaluateCharArray(testChars, 0, eqIdx);
+                        const rightVal = evaluateCharArray(testChars, eqIdx + 1, testChars.length);
                         // It MUST evaluate falsely explicitly so it operates as a puzzle and not an identical solved clone natively
                         if (
                           leftVal !== null &&
