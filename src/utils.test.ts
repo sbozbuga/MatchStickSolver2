@@ -2,9 +2,37 @@ import * as evaluator from './evaluate';
 import { describe, it, expect } from 'vitest';
 import * as utils from './utils';
 import { vi } from 'vitest';
-import { calculateCombinedRemovalMask, getMoveHighlights, generateRandomPuzzle, getPattern, patternToChar, solveEquation } from './utils';
+import { calculateCombinedRemovalMask, getMoveHighlights, generateRandomPuzzle, getPattern, patternToChar, solveEquation, getEquationChars } from './utils';
 import { evaluateExpression } from './evaluate';
 import { DIGITS, OPERATORS, EQUALS_SIGN } from './constants';
+
+describe('getEquationChars', () => {
+    it('returns characters of a standard equation without modifications', () => {
+        expect(getEquationChars('1+2=3', false)).toEqual(['1', '+', '2', '=', '3']);
+    });
+
+    it('ignores spaces in the equation', () => {
+        expect(getEquationChars(' 1 + 2 = 3 ', false)).toEqual(['1', '+', '2', '=', '3']);
+    });
+
+    it('removes the equals sign when removeEquals is true', () => {
+        expect(getEquationChars('1+2=3', true)).toEqual(['1', '+', '2', '3']);
+    });
+
+    it('keeps the equals sign when removeEquals is false', () => {
+        expect(getEquationChars('1+2=3', false)).toEqual(['1', '+', '2', '=', '3']);
+    });
+
+    it('handles an empty string', () => {
+        expect(getEquationChars('', false)).toEqual([]);
+        expect(getEquationChars('', true)).toEqual([]);
+    });
+
+    it('handles multiple equals signs correctly based on removeEquals flag', () => {
+        expect(getEquationChars('1=2=3', true)).toEqual(['1', '2', '3']);
+        expect(getEquationChars('1=2=3', false)).toEqual(['1', '=', '2', '=', '3']);
+    });
+});
 
 describe('generateRandomPuzzle', () => {
     it('skips invalid equations gracefully when evaluateCharArray returns null', () => {
