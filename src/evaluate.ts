@@ -1,7 +1,9 @@
-const CHAR_CODE_0 = 48;
-const CHAR_CODE_9 = 57;
-const CHAR_CODE_PLUS = 43;
-const CHAR_CODE_MINUS = 45;
+import {
+  CHAR_CODE_0,
+  CHAR_CODE_9,
+  CHAR_CODE_PLUS,
+  CHAR_CODE_MINUS,
+} from "./constants";
 
 export function evaluateExpression(expr: string): number | null {
     if (!expr) return null;

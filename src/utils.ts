@@ -1,11 +1,16 @@
 import { evaluateExpression, evaluateCharArray } from "./evaluate";
-import { DIGITS, OPERATORS, EQUALS_SIGN } from "./constants";
+import {
+  DIGITS,
+  OPERATORS,
+  EQUALS_SIGN,
+  CHAR_CODE_0,
+  CHAR_CODE_9,
+  CHAR_CODE_PLUS,
+  CHAR_CODE_MINUS,
+  CHAR_CODE_EQUALS,
+  CHAR_CODE_SPACE,
+} from "./constants";
 import type { SegmentPattern, SolutionHighlights } from "./types";
-
-const CHAR_CODE_0 = 48;
-const CHAR_CODE_9 = 57;
-const CHAR_CODE_PLUS = 43;
-const CHAR_CODE_MINUS = 45;
 
 export function getEquationChars(
   equation: string,
@@ -14,10 +19,10 @@ export function getEquationChars(
   const chars: string[] = [];
   for (let i = 0; i < equation.length; i++) {
     const charCode = equation.charCodeAt(i);
-    // Ignore space (32)
-    if (charCode !== 32) {
-      // Ignore equals (61) if removeEquals is true
-      if (!(removeEquals && charCode === 61)) {
+    // Ignore space
+    if (charCode !== CHAR_CODE_SPACE) {
+      // Ignore equals if removeEquals is true
+      if (!(removeEquals && charCode === CHAR_CODE_EQUALS)) {
         chars.push(equation[i]);
       }
     }
@@ -29,10 +34,11 @@ export function getPattern(char: string | number): SegmentPattern {
   if (typeof char === "string") {
     if (char.length === 1) {
       const code = char.charCodeAt(0);
-      if (code >= 48 && code <= 57) return DIGITS[code - 48];
-      if (code === 43) return OPERATORS["+"];
-      if (code === 45) return OPERATORS["-"];
-      if (code === 61) return EQUALS_SIGN;
+      if (code >= CHAR_CODE_0 && code <= CHAR_CODE_9)
+        return DIGITS[code - CHAR_CODE_0];
+      if (code === CHAR_CODE_PLUS) return OPERATORS["+"];
+      if (code === CHAR_CODE_MINUS) return OPERATORS["-"];
+      if (code === CHAR_CODE_EQUALS) return EQUALS_SIGN;
     } else {
       const digit = parseInt(char, 10);
       if (!isNaN(digit) && DIGITS[digit]) return DIGITS[digit];
@@ -50,10 +56,11 @@ export function getPattern(char: string | number): SegmentPattern {
   const charStr = String(char);
   if (charStr.length === 1) {
     const code = charStr.charCodeAt(0);
-    if (code >= 48 && code <= 57) return DIGITS[code - 48];
-    if (code === 43) return OPERATORS["+"];
-    if (code === 45) return OPERATORS["-"];
-    if (code === 61) return EQUALS_SIGN;
+    if (code >= CHAR_CODE_0 && code <= CHAR_CODE_9)
+      return DIGITS[code - CHAR_CODE_0];
+    if (code === CHAR_CODE_PLUS) return OPERATORS["+"];
+    if (code === CHAR_CODE_MINUS) return OPERATORS["-"];
+    if (code === CHAR_CODE_EQUALS) return EQUALS_SIGN;
   } else {
     const digit = parseInt(charStr, 10);
     if (!isNaN(digit) && DIGITS[digit]) return DIGITS[digit];
