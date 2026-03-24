@@ -160,6 +160,7 @@ export const solveEquation = (equation: string): string[] => {
   if (equation.length > 20) return [];
 
   const chars = getEquationChars(equation, false);
+  const eqIdx = chars.indexOf("=");
   const patterns = chars.map((c) => [...getPattern(c)] as SegmentPattern);
   const solutions = new Set<string>();
 
@@ -200,7 +201,6 @@ export const solveEquation = (equation: string): string[] => {
                 }
 
                 if (!isEq) {
-                  let eqIdx = testChars.indexOf("=");
                   if (eqIdx > 0 && eqIdx < testChars.length - 1) {
                       const leftVal = evaluateCharArray(testChars, 0, eqIdx);
                       const rightVal = evaluateCharArray(testChars, eqIdx + 1, testChars.length);
@@ -261,6 +261,7 @@ export const generateRandomPuzzle = (): string => {
     // 2. Iterate backward generating exactly 1-move permutations representing valid but incorrect puzzle states
     for (const eq of validEquations) {
       const chars = getEquationChars(eq, false);
+      const eqIdx = chars.indexOf("=");
       const patterns = chars.map((c) => [...getPattern(c)] as SegmentPattern);
 
       const testChars = patterns.map((p, idx) =>
@@ -299,7 +300,6 @@ export const generateRandomPuzzle = (): string => {
                     }
 
                     if (!isEq) {
-                      let eqIdx = testChars.indexOf("=");
                       if (eqIdx > 0 && eqIdx < testChars.length - 1) {
                         const leftVal = evaluateCharArray(testChars, 0, eqIdx);
                         const rightVal = evaluateCharArray(testChars, eqIdx + 1, testChars.length);
