@@ -1,4 +1,4 @@
-import { evaluateExpression, evaluateCharArray } from "./evaluate";
+import { evaluateCharArray } from "./evaluate";
 import {
   DIGITS,
   OPERATORS,
