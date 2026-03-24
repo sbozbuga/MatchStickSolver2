@@ -284,38 +284,19 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({
   };
 
   const handleCopyEquation = async () => {
-    if (navigator?.clipboard?.writeText) {
-      try {
-        await navigator.clipboard.writeText(originalEquation);
-        setIsCopied(true);
-        setTimeout(() => setIsCopied(false), 2000);
-      } catch (err) {
-        setCopyError(true);
-        setTimeout(() => setCopyError(false), 2000);
-      }
-    } else {
-      // Fallback for environments where clipboard API is unavailable
-      const textArea = document.createElement("textarea");
-      textArea.value = originalEquation;
+    if (!navigator?.clipboard?.writeText) {
+      setCopyError(true);
+      setTimeout(() => setCopyError(false), 2000);
+      return;
+    }
 
-      // Avoid scrolling to bottom
-      textArea.style.top = "0";
-      textArea.style.left = "0";
-      textArea.style.position = "fixed";
-
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
-
-      try {
-        document.execCommand("copy");
-        setIsCopied(true);
-        setTimeout(() => setIsCopied(false), 2000);
-      } catch (err) {
-        setCopyError(true);
-        setTimeout(() => setCopyError(false), 2000);
-      }
-      document.body.removeChild(textArea);
+    try {
+      await navigator.clipboard.writeText(originalEquation);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      setCopyError(true);
+      setTimeout(() => setCopyError(false), 2000);
     }
   };
 
