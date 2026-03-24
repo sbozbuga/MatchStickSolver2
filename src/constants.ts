@@ -28,3 +28,10 @@ export const OPERATORS: { [key: string]: SegmentPattern } = {
 };
 
 export const EQUALS_SIGN: SegmentPattern = [1, 0, 0, 0, 0, 0, 1]; // Top and bottom bars for a clearer equals sign
+
+export const CHAR_CODE_0 = 48;
+export const CHAR_CODE_9 = 57;
+export const CHAR_CODE_PLUS = 43;
+export const CHAR_CODE_MINUS = 45;
+export const CHAR_CODE_EQUALS = 61;
+export const CHAR_CODE_SPACE = 32;
