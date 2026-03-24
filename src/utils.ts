@@ -192,13 +192,7 @@ export const solveEquation = (equation: string): string[] => {
               else if (oldCharK !== null && testChars[k] === null) nullCount++;
 
               if (nullCount === 0) {
-                let isEq = true;
-                for (let ci = 0; ci < chars.length; ci++) {
-                  if (testChars[ci] !== chars[ci]) {
-                    isEq = false;
-                    break;
-                  }
-                }
+                const isEq = testChars[i] === chars[i] && testChars[k] === chars[k];
 
                 if (!isEq) {
                   if (eqIdx > 0 && eqIdx < testChars.length - 1) {
@@ -291,13 +285,7 @@ export const generateRandomPuzzle = (): string => {
                     nullCount++;
 
                   if (nullCount === 0) {
-                    let isEq = true;
-                    for (let ci = 0; ci < chars.length; ci++) {
-                      if (testChars[ci] !== chars[ci]) {
-                        isEq = false;
-                        break;
-                      }
-                    }
+                    const isEq = testChars[i] === chars[i] && testChars[k] === chars[k];
 
                     if (!isEq) {
                       if (eqIdx > 0 && eqIdx < testChars.length - 1) {
