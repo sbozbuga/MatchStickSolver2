@@ -19,33 +19,17 @@ export function getEquationChars(
   const chars: string[] = [];
   for (let i = 0; i < equation.length; i++) {
     const charCode = equation.charCodeAt(i);
-    // Ignore space
-    if (charCode !== CHAR_CODE_SPACE) {
-      // Ignore equals if removeEquals is true
-      if (!(removeEquals && charCode === CHAR_CODE_EQUALS)) {
-        chars.push(equation[i]);
-      }
+    if (
+      charCode !== CHAR_CODE_SPACE &&
+      !(removeEquals && charCode === CHAR_CODE_EQUALS)
+    ) {
+      chars.push(equation[i]);
     }
   }
   return chars;
 }
 
 export function getPattern(char: string | number): SegmentPattern {
-  if (typeof char === "string") {
-    if (char.length === 1) {
-      const code = char.charCodeAt(0);
-      if (code >= CHAR_CODE_0 && code <= CHAR_CODE_9)
-        return DIGITS[code - CHAR_CODE_0];
-      if (code === CHAR_CODE_PLUS) return OPERATORS["+"];
-      if (code === CHAR_CODE_MINUS) return OPERATORS["-"];
-      if (code === CHAR_CODE_EQUALS) return EQUALS_SIGN;
-    } else {
-      const digit = parseInt(char, 10);
-      if (!isNaN(digit) && DIGITS[digit]) return DIGITS[digit];
-    }
-    return [0, 0, 0, 0, 0, 0, 0];
-  }
-
   if (typeof char === "number") {
     if (char >= 0 && char <= 9 && Number.isInteger(char)) {
       return DIGITS[char];
@@ -53,11 +37,12 @@ export function getPattern(char: string | number): SegmentPattern {
     return [0, 0, 0, 0, 0, 0, 0];
   }
 
-  const charStr = String(char);
+  const charStr = typeof char === "string" ? char : String(char);
   if (charStr.length === 1) {
     const code = charStr.charCodeAt(0);
-    if (code >= CHAR_CODE_0 && code <= CHAR_CODE_9)
+    if (code >= CHAR_CODE_0 && code <= CHAR_CODE_9) {
       return DIGITS[code - CHAR_CODE_0];
+    }
     if (code === CHAR_CODE_PLUS) return OPERATORS["+"];
     if (code === CHAR_CODE_MINUS) return OPERATORS["-"];
     if (code === CHAR_CODE_EQUALS) return EQUALS_SIGN;
