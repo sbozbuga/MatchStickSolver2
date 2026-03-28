@@ -155,14 +155,13 @@ export function patternToChar(
   return null;
 }
 
-export const solveEquation = (equation: string): string[] => {
-  // SECURITY: Limit input to prevent CPU exhaustion DoS (Client thread locking)
-  if (equation.length > 20) return [];
-
+export function findOneMovePermutations(
+  equation: string,
+  onPermutationFound: (permutation: string, leftVal: number, rightVal: number) => void,
+): void {
   const chars = getEquationChars(equation, false);
   const eqIdx = chars.indexOf("=");
   const patterns = chars.map((c) => [...getPattern(c)] as SegmentPattern);
-  const solutions = new Set<string>();
 
   const testChars = patterns.map((p, idx) =>
     patternToChar(p as SegmentPattern, chars[idx]),
@@ -196,14 +195,13 @@ export const solveEquation = (equation: string): string[] => {
 
                 if (!isEq) {
                   if (eqIdx > 0 && eqIdx < testChars.length - 1) {
-                      const leftVal = evaluateCharArray(testChars, 0, eqIdx);
-                      const rightVal = evaluateCharArray(testChars, eqIdx + 1, testChars.length);
+                    const leftVal = evaluateCharArray(testChars, 0, eqIdx);
+                    const rightVal = evaluateCharArray(testChars, eqIdx + 1, testChars.length);
                     if (
                       leftVal !== null &&
-                      rightVal !== null &&
-                      leftVal === rightVal
+                      rightVal !== null
                     ) {
-                      solutions.add(testChars.join(""));
+                      onPermutationFound(testChars.join(""), leftVal, rightVal);
                     }
                   }
                 }
@@ -228,6 +226,19 @@ export const solveEquation = (equation: string): string[] => {
       }
     }
   }
+}
+
+export const solveEquation = (equation: string): string[] => {
+  // SECURITY: Limit input to prevent CPU exhaustion DoS (Client thread locking)
+  if (equation.length > 20) return [];
+
+  const solutions = new Set<string>();
+
+  findOneMovePermutations(equation, (permutation, leftVal, rightVal) => {
+    if (leftVal === rightVal) {
+      solutions.add(permutation);
+    }
+  });
 
   return Array.from(solutions);
 };
@@ -254,72 +265,12 @@ export const generateRandomPuzzle = (): string => {
 
     // 2. Iterate backward generating exactly 1-move permutations representing valid but incorrect puzzle states
     for (const eq of validEquations) {
-      const chars = getEquationChars(eq, false);
-      const eqIdx = chars.indexOf("=");
-      const patterns = chars.map((c) => [...getPattern(c)] as SegmentPattern);
-
-      const testChars = patterns.map((p, idx) =>
-        patternToChar(p as SegmentPattern, chars[idx]),
-      );
-      let nullCount = testChars.filter((c) => c === null).length;
-
-      for (let i = 0; i < patterns.length; i++) {
-        for (let j = 0; j < 7; j++) {
-          if (patterns[i][j] === 1) {
-            patterns[i][j] = 0;
-
-            const oldCharI = testChars[i];
-            testChars[i] = patternToChar(patterns[i], chars[i]);
-            if (oldCharI === null && testChars[i] !== null) nullCount--;
-            else if (oldCharI !== null && testChars[i] === null) nullCount++;
-
-            for (let k = 0; k < patterns.length; k++) {
-              for (let l = 0; l < 7; l++) {
-                if (patterns[k][l] === 0) {
-                  patterns[k][l] = 1;
-
-                  const oldCharK = testChars[k];
-                  testChars[k] = patternToChar(patterns[k], chars[k]);
-                  if (oldCharK === null && testChars[k] !== null) nullCount--;
-                  else if (oldCharK !== null && testChars[k] === null)
-                    nullCount++;
-
-                  if (nullCount === 0) {
-                    const isEq = i === k ? testChars[i] === chars[i] : testChars[i] === chars[i] && testChars[k] === chars[k];
-
-                    if (!isEq) {
-                      if (eqIdx > 0 && eqIdx < testChars.length - 1) {
-                        const leftVal = evaluateCharArray(testChars, 0, eqIdx);
-                        const rightVal = evaluateCharArray(testChars, eqIdx + 1, testChars.length);
-                        // It MUST evaluate falsely explicitly so it operates as a puzzle and not an identical solved clone natively
-                        if (
-                          leftVal !== null &&
-                          rightVal !== null &&
-                          leftVal !== rightVal
-                        ) {
-                          ALL_PUZZLES.add(testChars.join(""));
-                        }
-                      }
-                    }
-                  }
-                  patterns[k][l] = 0;
-                  const newCharK = testChars[k];
-                  testChars[k] = oldCharK;
-                  if (newCharK === null && testChars[k] !== null) nullCount--;
-                  else if (newCharK !== null && testChars[k] === null)
-                    nullCount++;
-                }
-              }
-            }
-
-            patterns[i][j] = 1;
-            const newCharI = testChars[i];
-            testChars[i] = oldCharI;
-            if (newCharI === null && testChars[i] !== null) nullCount--;
-            else if (newCharI !== null && testChars[i] === null) nullCount++;
-          }
+      findOneMovePermutations(eq, (permutation, leftVal, rightVal) => {
+        // It MUST evaluate falsely explicitly so it operates as a puzzle and not an identical solved clone natively
+        if (leftVal !== rightVal) {
+          ALL_PUZZLES.add(permutation);
         }
-      }
+      });
     }
     CACHED_PUZZLES = Array.from(ALL_PUZZLES);
   }
