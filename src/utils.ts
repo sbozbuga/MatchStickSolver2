@@ -191,7 +191,10 @@ export function findOneMovePermutations(
               else if (oldCharK !== null && testChars[k] === null) nullCount++;
 
               if (nullCount === 0) {
-                const isEq = i === k ? testChars[i] === chars[i] : testChars[i] === chars[i] && testChars[k] === chars[k];
+                const isEq =
+                  i === k
+                    ? testChars[i] === chars[i]
+                    : testChars[i] === chars[i] && testChars[k] === chars[k];
 
                 if (!isEq) {
                   if (eqIdx > 0 && eqIdx < testChars.length - 1) {
