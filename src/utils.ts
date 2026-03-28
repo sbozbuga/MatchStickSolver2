@@ -155,15 +155,18 @@ export function patternToChar(
   return null;
 }
 
+export function findOneMovePermutations(
+  equation: string,
+  onPermutationFound: (permutation: string, leftVal: number, rightVal: number) => void,
+): void {
+  const chars = getEquationChars(equation, false);
+  const eqIdx = chars.indexOf("=");
+  const patterns = chars.map((c) => [...getPattern(c)] as SegmentPattern);
 
-export function processMatchstickMoves(
-  chars: string[],
-  patterns: SegmentPattern[],
-  testChars: (string | null)[],
-  initialNullCount: number,
-  onValidMove: (testChars: (string | null)[]) => void,
-) {
-  let nullCount = initialNullCount;
+  const testChars = patterns.map((p, idx) =>
+    patternToChar(p as SegmentPattern, chars[idx]),
+  );
+  let nullCount = testChars.filter((c) => c === null).length;
 
   for (let i = 0; i < patterns.length; i++) {
     for (let j = 0; j < 7; j++) {
@@ -194,7 +197,16 @@ export function processMatchstickMoves(
                     : testChars[i] === chars[i] && testChars[k] === chars[k];
 
                 if (!isEq) {
-                  onValidMove(testChars);
+                  if (eqIdx > 0 && eqIdx < testChars.length - 1) {
+                    const leftVal = evaluateCharArray(testChars, 0, eqIdx);
+                    const rightVal = evaluateCharArray(testChars, eqIdx + 1, testChars.length);
+                    if (
+                      leftVal !== null &&
+                      rightVal !== null
+                    ) {
+                      onPermutationFound(testChars.join(""), leftVal, rightVal);
+                    }
+                  }
                 }
               }
 
@@ -223,23 +235,11 @@ export const solveEquation = (equation: string): string[] => {
   // SECURITY: Limit input to prevent CPU exhaustion DoS (Client thread locking)
   if (equation.length > 20) return [];
 
-  const chars = getEquationChars(equation, false);
-  const eqIdx = chars.indexOf("=");
-  const patterns = chars.map((c) => [...getPattern(c)] as SegmentPattern);
   const solutions = new Set<string>();
 
-  const testChars = patterns.map((p, idx) =>
-    patternToChar(p as SegmentPattern, chars[idx]),
-  );
-  let nullCount = testChars.filter((c) => c === null).length;
-
-  processMatchstickMoves(chars, patterns, testChars, nullCount, (validTestChars) => {
-    if (eqIdx > 0 && eqIdx < validTestChars.length - 1) {
-      const leftVal = evaluateCharArray(validTestChars, 0, eqIdx);
-      const rightVal = evaluateCharArray(validTestChars, eqIdx + 1, validTestChars.length);
-      if (leftVal !== null && rightVal !== null && leftVal === rightVal) {
-        solutions.add(validTestChars.join(""));
-      }
+  findOneMovePermutations(equation, (permutation, leftVal, rightVal) => {
+    if (leftVal === rightVal) {
+      solutions.add(permutation);
     }
   });
 
@@ -268,23 +268,10 @@ export const generateRandomPuzzle = (): string => {
 
     // 2. Iterate backward generating exactly 1-move permutations representing valid but incorrect puzzle states
     for (const eq of validEquations) {
-      const chars = getEquationChars(eq, false);
-      const eqIdx = chars.indexOf("=");
-      const patterns = chars.map((c) => [...getPattern(c)] as SegmentPattern);
-
-      const testChars = patterns.map((p, idx) =>
-        patternToChar(p as SegmentPattern, chars[idx]),
-      );
-      let nullCount = testChars.filter((c) => c === null).length;
-
-      processMatchstickMoves(chars, patterns, testChars, nullCount, (validTestChars) => {
-        if (eqIdx > 0 && eqIdx < validTestChars.length - 1) {
-          const leftVal = evaluateCharArray(validTestChars, 0, eqIdx);
-          const rightVal = evaluateCharArray(validTestChars, eqIdx + 1, validTestChars.length);
-          // It MUST evaluate falsely explicitly so it operates as a puzzle and not an identical solved clone natively
-          if (leftVal !== null && rightVal !== null && leftVal !== rightVal) {
-            ALL_PUZZLES.add(validTestChars.join(""));
-          }
+      findOneMovePermutations(eq, (permutation, leftVal, rightVal) => {
+        // It MUST evaluate falsely explicitly so it operates as a puzzle and not an identical solved clone natively
+        if (leftVal !== rightVal) {
+          ALL_PUZZLES.add(permutation);
         }
       });
     }
