@@ -21,7 +21,7 @@ A **React + TypeScript + Vite** web app that lets users solve matchstick equatio
 | `index.html` | Entry point, mounts React to `#root` |
 | `src/main.tsx` | React root render with StrictMode |
 | `src/App.tsx` | Top-level app with **Quiz Mode** / **Solver Mode** toggle |
-| `src/types.ts` | TypeScript types: `ParsedEquation`, `SegmentPattern`, `HistoryEntry`, `SolutionHighlights` |
+| `src/types.ts` | TypeScript types: `SegmentPattern`, `HistoryEntry`, `SolutionHighlights` |
 | `src/constants.ts` | 7-segment display patterns for digits 0–9, operators `+`/`-`, and `=` |
 | `src/utils.ts` | Core logic: `solveEquation()`, `generateRandomPuzzle()`, `evaluateExpression()`, pattern matching |
 | `src/index.css` | TailwindCSS import + custom keyframe animations for stick highlights |
