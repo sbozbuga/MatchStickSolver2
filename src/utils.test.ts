@@ -2,7 +2,7 @@ import * as evaluator from './evaluate';
 import { describe, it, expect } from 'vitest';
 import * as utils from './utils';
 import { vi } from 'vitest';
-import { calculateCombinedRemovalMask, getMoveHighlights, generateRandomPuzzle, getPattern, patternToChar, solveEquation, getEquationChars } from './utils';
+import { calculateCombinedRemovalMask, getMoveHighlights, generateRandomPuzzle, getPattern, patternToChar, solveEquation, getEquationChars, findOneMovePermutations } from './utils';
 import { evaluateExpression } from './evaluate';
 import { DIGITS, OPERATORS, EQUALS_SIGN } from './constants';
 
@@ -253,6 +253,40 @@ describe('evaluateExpression', () => {
     it('returns null for consecutive or malformed operators', () => {
         expect(evaluateExpression('6++4')).toBeNull();
         expect(evaluateExpression('6*4')).toBeNull(); // * is not matched by our regex [\d+|[+-]], so it might ignore it, but parsing breaks
+    });
+});
+
+describe('findOneMovePermutations', () => {
+    it('calls the callback with correctly generated permutations', () => {
+        const callback = vi.fn();
+        findOneMovePermutations('6-4=2', callback);
+
+        // Based on local testing, we expect certain permutations like 0-4=2, 9-4=2, 5+4=2, 6-4=3
+        expect(callback).toHaveBeenCalledWith('0-4=2', -4, 2);
+        expect(callback).toHaveBeenCalledWith('9-4=2', 5, 2);
+        expect(callback).toHaveBeenCalledWith('5+4=2', 9, 2);
+        expect(callback).toHaveBeenCalledWith('6-4=3', 2, 3);
+    });
+
+    it('works with multi-digit numbers', () => {
+        const callback = vi.fn();
+        findOneMovePermutations('1+1=11', callback);
+
+        expect(callback).toHaveBeenCalledWith('7-1=11', 6, 11);
+        expect(callback).toHaveBeenCalledWith('1-7=11', -6, 11);
+        expect(callback).toHaveBeenCalledWith('1-1=71', 0, 71);
+        expect(callback).toHaveBeenCalledWith('1-1=17', 0, 17);
+    });
+
+    it('invokes callback for all permutations including those where leftVal !== rightVal', () => {
+        const callback = vi.fn();
+        findOneMovePermutations('0+0=0', callback);
+
+        // It should find 9 permutations for 0+0=0
+        expect(callback).toHaveBeenCalledTimes(9);
+        expect(callback).toHaveBeenCalledWith('6+0=0', 6, 0);
+        expect(callback).toHaveBeenCalledWith('8-0=0', 8, 0);
+        expect(callback).toHaveBeenCalledWith('0-0=8', 0, 8);
     });
 });
 
