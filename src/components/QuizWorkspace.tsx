@@ -3,7 +3,7 @@ import { Copy, Check, XCircle } from "lucide-react";
 import type { SegmentPattern } from "../types";
 import { EqualsSign } from "./EqualsSign";
 import { getPattern, patternToChar, generateRandomPuzzle } from "../utils";
-import { evaluateExpression } from "../evaluate";
+import { evaluateCharArray } from "../evaluate";
 
 interface QuizWorkspaceProps {
   onSolveSuccess?: () => void;
@@ -78,24 +78,43 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({
     const currentChars = patterns.map((p, i) =>
       patternToChar(p, originalEquation[i]),
     );
-    const currentEq = currentChars.join("");
 
-    if (currentEq === originalEquation) {
+    // Optimization: avoid join() and equality check with string
+    let isSameAsOriginal = true;
+    let hasNull = false;
+    for (let i = 0; i < currentChars.length; i++) {
+      if (currentChars[i] === null) {
+        hasNull = true;
+        isSameAsOriginal = false;
+        break;
+      }
+      if (currentChars[i] !== originalEquation[i]) {
+        isSameAsOriginal = false;
+      }
+    }
+
+    if (isSameAsOriginal) {
       setIsSolved(false);
       setIsFailed(false);
       return;
     }
 
-    if (currentChars.includes(null)) {
+    if (hasNull) {
       setIsFailed(true);
       setIsSolved(false);
       return;
     }
 
-    const [left, right] = currentEq.split("=");
-    if (left && right) {
-      const leftVal = evaluateExpression(left);
-      const rightVal = evaluateExpression(right);
+    // Optimization: avoid split("=") and evaluateExpression string allocations
+    const eqIdx = originalEquation.indexOf("=");
+    if (eqIdx !== -1) {
+      const leftVal = evaluateCharArray(currentChars, 0, eqIdx);
+      const rightVal = evaluateCharArray(
+        currentChars,
+        eqIdx + 1,
+        currentChars.length,
+      );
+
       if (leftVal !== null && rightVal !== null && leftVal === rightVal) {
         setIsSolved(true);
         setIsFailed(false);
