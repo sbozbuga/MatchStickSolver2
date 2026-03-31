@@ -3,7 +3,8 @@ import { evaluateExpression } from './evaluate';
 import { describe, it, expect } from 'vitest';
 import * as utils from './utils';
 import { vi } from 'vitest';
-import { calculateCombinedRemovalMask, getMoveHighlights, generateRandomPuzzle, getPattern, patternToChar, solveEquation, getEquationChars } from './utils';
+import { calculateCombinedRemovalMask, getMoveHighlights, generateRandomPuzzle, getPattern, patternToChar, solveEquation, getEquationChars, findOneMovePermutations } from './utils';
+import { evaluateExpression } from './evaluate';
 import { DIGITS, OPERATORS, EQUALS_SIGN } from './constants';
 
 describe('getEquationChars', () => {
@@ -216,6 +217,77 @@ describe('patternToChar', () => {
         const allOnes = [1, 1, 1, 1, 1, 1, 1] as [number, number, number, number, number, number, number]; // this is '8', but what if we do something else?
         const invalidPattern = [0, 1, 0, 1, 1, 0, 0] as [number, number, number, number, number, number, number];
         expect(patternToChar(invalidPattern, '')).toBeNull();
+    });
+});
+
+describe('evaluateExpression', () => {
+    it('evaluates simple addition correctly', () => {
+        expect(evaluateExpression('6+4')).toBe(10);
+        expect(evaluateExpression('0+4')).toBe(4);
+    });
+
+    it('evaluates simple subtraction correctly', () => {
+        expect(evaluateExpression('9-5')).toBe(4);
+        expect(evaluateExpression('8-4')).toBe(4);
+    });
+
+    it('evaluates multiple operations sequentially left-to-right', () => {
+        expect(evaluateExpression('6+4-2')).toBe(8);
+        expect(evaluateExpression('10-5+3')).toBe(8);
+    });
+
+    it('returns null for empty or undefined input', () => {
+        expect(evaluateExpression('')).toBeNull();
+        expect(evaluateExpression(undefined as unknown as string)).toBeNull();
+    });
+
+    it('returns null for invalid strings containing no numbers', () => {
+        expect(evaluateExpression('a+b')).toBeNull();
+        expect(evaluateExpression('===')).toBeNull();
+    });
+
+    it('returns null for implicitly dangling operators', () => {
+        expect(evaluateExpression('6+')).toBeNull();
+        expect(evaluateExpression('-5')).toBeNull(); // Our regex grabs 5, but there's no initial number if it starts with -. The code expects \d+ first realistically for solving equation layouts. 
+    });
+
+    it('returns null for consecutive or malformed operators', () => {
+        expect(evaluateExpression('6++4')).toBeNull();
+        expect(evaluateExpression('6*4')).toBeNull(); // * is not matched by our regex [\d+|[+-]], so it might ignore it, but parsing breaks
+    });
+});
+
+describe('findOneMovePermutations', () => {
+    it('calls the callback with correctly generated permutations', () => {
+        const callback = vi.fn();
+        findOneMovePermutations('6-4=2', callback);
+
+        // Based on local testing, we expect certain permutations like 0-4=2, 9-4=2, 5+4=2, 6-4=3
+        expect(callback).toHaveBeenCalledWith('0-4=2', -4, 2);
+        expect(callback).toHaveBeenCalledWith('9-4=2', 5, 2);
+        expect(callback).toHaveBeenCalledWith('5+4=2', 9, 2);
+        expect(callback).toHaveBeenCalledWith('6-4=3', 2, 3);
+    });
+
+    it('works with multi-digit numbers', () => {
+        const callback = vi.fn();
+        findOneMovePermutations('1+1=11', callback);
+
+        expect(callback).toHaveBeenCalledWith('7-1=11', 6, 11);
+        expect(callback).toHaveBeenCalledWith('1-7=11', -6, 11);
+        expect(callback).toHaveBeenCalledWith('1-1=71', 0, 71);
+        expect(callback).toHaveBeenCalledWith('1-1=17', 0, 17);
+    });
+
+    it('invokes callback for all permutations including those where leftVal !== rightVal', () => {
+        const callback = vi.fn();
+        findOneMovePermutations('0+0=0', callback);
+
+        // It should find 9 permutations for 0+0=0
+        expect(callback).toHaveBeenCalledTimes(9);
+        expect(callback).toHaveBeenCalledWith('6+0=0', 6, 0);
+        expect(callback).toHaveBeenCalledWith('8-0=0', 8, 0);
+        expect(callback).toHaveBeenCalledWith('0-0=8', 0, 8);
     });
 });
 
