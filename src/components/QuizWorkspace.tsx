@@ -44,9 +44,13 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({
       .split("")
       .map((c) => [...getPattern(c)] as SegmentPattern);
     setPatterns(initialPatterns);
-    setInitialSticksCount(
-      initialPatterns.flat().reduce((sum, v) => sum + v, 0),
-    );
+    let initialCount = 0;
+    for (let i = 0; i < initialPatterns.length; i++) {
+      for (let j = 0; j < initialPatterns[i].length; j++) {
+        initialCount += initialPatterns[i][j];
+      }
+    }
+    setInitialSticksCount(initialCount);
     setIsSolved(false);
     setIsFailed(false);
   }, []);
@@ -59,7 +63,12 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({
   useEffect(() => {
     if (patterns.length === 0) return;
 
-    const currentSticksCount = patterns.flat().reduce((sum, v) => sum + v, 0);
+    let currentSticksCount = 0;
+    for (let i = 0; i < patterns.length; i++) {
+      for (let j = 0; j < patterns[i].length; j++) {
+        currentSticksCount += patterns[i][j];
+      }
+    }
     if (currentSticksCount !== initialSticksCount) {
       setIsSolved(false);
       setIsFailed(false);
