@@ -114,7 +114,7 @@ export function patternToChar(
 
 export function findOneMovePermutations(
   equation: string,
-  onPermutationFound: (permutation: string, leftVal: number, rightVal: number) => void,
+  onPermutationFound: (permutation: (string | null)[], leftVal: number, rightVal: number) => void,
 ): void {
   const chars = getEquationChars(equation, false);
   const eqIdx = chars.indexOf("=");
@@ -161,7 +161,7 @@ export function findOneMovePermutations(
                       leftVal !== null &&
                       rightVal !== null
                     ) {
-                      onPermutationFound(testChars.join(""), leftVal, rightVal);
+                      onPermutationFound(testChars, leftVal, rightVal);
                     }
                   }
                 }
@@ -194,9 +194,9 @@ export const solveEquation = (equation: string): string[] => {
 
   const solutions = new Set<string>();
 
-  findOneMovePermutations(equation, (permutation, leftVal, rightVal) => {
+  findOneMovePermutations(equation, (permutationChars, leftVal, rightVal) => {
     if (leftVal === rightVal) {
-      solutions.add(permutation);
+      solutions.add(permutationChars.join(""));
     }
   });
 
@@ -225,10 +225,10 @@ export const generateRandomPuzzle = (): string => {
 
     // 2. Iterate backward generating exactly 1-move permutations representing valid but incorrect puzzle states
     for (const eq of validEquations) {
-      findOneMovePermutations(eq, (permutation, leftVal, rightVal) => {
+      findOneMovePermutations(eq, (permutationChars, leftVal, rightVal) => {
         // It MUST evaluate falsely explicitly so it operates as a puzzle and not an identical solved clone natively
         if (leftVal !== rightVal) {
-          ALL_PUZZLES.add(permutation);
+          ALL_PUZZLES.add(permutationChars.join(""));
         }
       });
     }
