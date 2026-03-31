@@ -84,34 +84,6 @@ export function getMoveHighlights(
   return { removalPatterns, additionPatterns };
 }
 
-export function calculateCombinedRemovalMask(
-  equation: string,
-  solutions: string[],
-): SegmentPattern[] | undefined {
-  if (!solutions || solutions.length === 0 || !equation) return undefined;
-
-  const originalChars = getEquationChars(equation, true);
-  const combinedMask: SegmentPattern[] = Array.from(
-    { length: originalChars.length },
-    () => [0, 0, 0, 0, 0, 0, 0],
-  );
-
-  for (const sol of solutions) {
-    const { removalPatterns } = getMoveHighlights(equation, sol);
-    for (let i = 0; i < combinedMask.length; i++) {
-      if (removalPatterns[i]) {
-        for (let j = 0; j < 7; j++) {
-          if (removalPatterns[i][j] === 1) {
-            combinedMask[i][j] = 1;
-          }
-        }
-      }
-    }
-  }
-
-  return combinedMask;
-}
-
 function isMatch(p1: SegmentPattern, p2: SegmentPattern): boolean {
   for (let i = 0; i < 7; i++) {
     if (p1[i] !== p2[i]) return false;
