@@ -9,6 +9,17 @@ interface QuizWorkspaceProps {
   onSolveSuccess?: () => void;
 }
 
+function countSticks(patterns: SegmentPattern[]): number {
+  let count = 0;
+  for (let i = 0; i < patterns.length; i++) {
+    const pattern = patterns[i];
+    for (let j = 0; j < pattern.length; j++) {
+      count += pattern[j];
+    }
+  }
+  return count;
+}
+
 export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({
   onSolveSuccess,
 }) => {
@@ -44,13 +55,7 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({
       .split("")
       .map((c) => [...getPattern(c)] as SegmentPattern);
     setPatterns(initialPatterns);
-    let initialCount = 0;
-    for (let i = 0; i < initialPatterns.length; i++) {
-      for (let j = 0; j < initialPatterns[i].length; j++) {
-        initialCount += initialPatterns[i][j];
-      }
-    }
-    setInitialSticksCount(initialCount);
+    setInitialSticksCount(countSticks(initialPatterns));
     setIsSolved(false);
     setIsFailed(false);
   }, []);
@@ -63,12 +68,7 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({
   useEffect(() => {
     if (patterns.length === 0) return;
 
-    let currentSticksCount = 0;
-    for (let i = 0; i < patterns.length; i++) {
-      for (let j = 0; j < patterns[i].length; j++) {
-        currentSticksCount += patterns[i][j];
-      }
-    }
+    const currentSticksCount = countSticks(patterns);
     if (currentSticksCount !== initialSticksCount) {
       setIsSolved(false);
       setIsFailed(false);
