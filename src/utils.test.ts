@@ -1,4 +1,5 @@
 import * as evaluator from './evaluate';
+import { evaluateExpression } from './evaluate';
 import { describe, it, expect } from 'vitest';
 import * as utils from './utils';
 import { vi } from 'vitest';
