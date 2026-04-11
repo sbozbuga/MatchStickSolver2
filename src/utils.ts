@@ -125,6 +125,9 @@ export function findOneMovePermutations(
   );
   let nullCount = testChars.filter((c) => c === null).length;
 
+  const initialLeftVal = evaluateCharArray(testChars, 0, eqIdx);
+  const initialRightVal = evaluateCharArray(testChars, eqIdx + 1, testChars.length);
+
   for (let i = 0; i < patterns.length; i++) {
     for (let j = 0; j < 7; j++) {
       if (patterns[i][j] === 1) {
@@ -135,6 +138,15 @@ export function findOneMovePermutations(
         testChars[i] = patternToChar(patterns[i], chars[i]);
         if (oldCharI === null && testChars[i] !== null) nullCount--;
         else if (oldCharI !== null && testChars[i] === null) nullCount++;
+
+        let currentLeftVal = initialLeftVal;
+        let currentRightVal = initialRightVal;
+
+        if (i < eqIdx) {
+          currentLeftVal = evaluateCharArray(testChars, 0, eqIdx);
+        } else if (i > eqIdx) {
+          currentRightVal = evaluateCharArray(testChars, eqIdx + 1, testChars.length);
+        }
 
         for (let k = 0; k < patterns.length; k++) {
           for (let l = 0; l < 7; l++) {
@@ -155,13 +167,20 @@ export function findOneMovePermutations(
 
                 if (!isEq) {
                   if (eqIdx > 0 && eqIdx < testChars.length - 1) {
-                    const leftVal = evaluateCharArray(testChars, 0, eqIdx);
-                    const rightVal = evaluateCharArray(testChars, eqIdx + 1, testChars.length);
+                    let finalLeftVal = currentLeftVal;
+                    let finalRightVal = currentRightVal;
+
+                    if (k < eqIdx) {
+                      finalLeftVal = evaluateCharArray(testChars, 0, eqIdx);
+                    } else if (k > eqIdx) {
+                      finalRightVal = evaluateCharArray(testChars, eqIdx + 1, testChars.length);
+                    }
+
                     if (
-                      leftVal !== null &&
-                      rightVal !== null
+                      finalLeftVal !== null &&
+                      finalRightVal !== null
                     ) {
-                      onPermutationFound(testChars, leftVal, rightVal);
+                      onPermutationFound([...testChars], finalLeftVal, finalRightVal);
                     }
                   }
                 }
