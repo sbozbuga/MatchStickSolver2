@@ -180,7 +180,7 @@ export function findOneMovePermutations(
                       finalLeftVal !== null &&
                       finalRightVal !== null
                     ) {
-                      onPermutationFound([...testChars], finalLeftVal, finalRightVal);
+                      onPermutationFound([...testChars], leftVal, rightVal);
                     }
                   }
                 }
@@ -254,7 +254,15 @@ export const generateRandomPuzzle = (): string => {
     CACHED_PUZZLES = Array.from(ALL_PUZZLES);
   }
 
+  const n = CACHED_PUZZLES.length;
+  if (n === 0) return "";
+
   const array = new Uint32Array(1);
-  crypto.getRandomValues(array);
-  return CACHED_PUZZLES[array[0] % CACHED_PUZZLES.length];
+  const limit = 0x100000000 - (0x100000000 % n);
+  let r: number;
+  do {
+    crypto.getRandomValues(array);
+    r = array[0];
+  } while (r >= limit);
+  return CACHED_PUZZLES[r % n];
 };
