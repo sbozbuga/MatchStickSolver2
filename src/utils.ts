@@ -10,7 +10,7 @@ import {
   CHAR_CODE_EQUALS,
   CHAR_CODE_SPACE,
 } from "./constants";
-import type { SegmentPattern, SolutionHighlights } from "./types";
+import type { SegmentPattern } from "./types";
 
 export function getEquationChars(
   equation: string,
@@ -53,37 +53,6 @@ export function getPattern(char: string | number): SegmentPattern {
   return [0, 0, 0, 0, 0, 0, 0];
 }
 
-export function getMoveHighlights(
-  originalEq: string,
-  modifiedEq: string,
-): SolutionHighlights {
-  const originalChars = getEquationChars(originalEq, true);
-  const modifiedChars = getEquationChars(modifiedEq, true);
-
-  const maxLength = Math.max(originalChars.length, modifiedChars.length);
-  const removalPatterns: SegmentPattern[] = [];
-  const additionPatterns: SegmentPattern[] = [];
-
-  for (let i = 0; i < maxLength; i++) {
-    const originalPattern = getPattern(originalChars[i] || "");
-    const modifiedPattern = getPattern(modifiedChars[i] || "");
-
-    const removals: SegmentPattern = [0, 0, 0, 0, 0, 0, 0];
-    const additions: SegmentPattern = [0, 0, 0, 0, 0, 0, 0];
-
-    for (let j = 0; j < 7; j++) {
-      if (originalPattern[j] === 1 && modifiedPattern[j] === 0) {
-        removals[j] = 1;
-      } else if (originalPattern[j] === 0 && modifiedPattern[j] === 1) {
-        additions[j] = 1;
-      }
-    }
-    removalPatterns.push(removals);
-    additionPatterns.push(additions);
-  }
-  return { removalPatterns, additionPatterns };
-}
-
 function isMatch(p1: SegmentPattern, p2: SegmentPattern): boolean {
   for (let i = 0; i < 7; i++) {
     if (p1[i] !== p2[i]) return false;
@@ -114,7 +83,7 @@ export function patternToChar(
 
 export function findOneMovePermutations(
   equation: string,
-  onPermutationFound: (permutation: (string | null)[], leftVal: number, rightVal: number) => void,
+  onPermutationFound: (permutation: string, leftVal: number, rightVal: number) => void,
 ): void {
   const chars = getEquationChars(equation, false);
   const eqIdx = chars.indexOf("=");
@@ -180,7 +149,7 @@ export function findOneMovePermutations(
                       finalLeftVal !== null &&
                       finalRightVal !== null
                     ) {
-                      onPermutationFound([...testChars], leftVal, rightVal);
+                      onPermutationFound(testChars.join(""), leftVal, rightVal);
                     }
                   }
                 }
@@ -213,9 +182,9 @@ export const solveEquation = (equation: string): string[] => {
 
   const solutions = new Set<string>();
 
-  findOneMovePermutations(equation, (permutationChars, leftVal, rightVal) => {
+  findOneMovePermutations(equation, (permutation, leftVal, rightVal) => {
     if (leftVal === rightVal) {
-      solutions.add(permutationChars.join(""));
+      solutions.add(permutation);
     }
   });
 
@@ -244,10 +213,10 @@ export const generateRandomPuzzle = (): string => {
 
     // 2. Iterate backward generating exactly 1-move permutations representing valid but incorrect puzzle states
     for (const eq of validEquations) {
-      findOneMovePermutations(eq, (permutationChars, leftVal, rightVal) => {
+      findOneMovePermutations(eq, (permutation, leftVal, rightVal) => {
         // It MUST evaluate falsely explicitly so it operates as a puzzle and not an identical solved clone natively
         if (leftVal !== rightVal) {
-          ALL_PUZZLES.add(permutationChars.join(""));
+          ALL_PUZZLES.add(permutation);
         }
       });
     }
