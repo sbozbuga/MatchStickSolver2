@@ -1,1 +1,1 @@
-rsync -avP --delete ./dist/ ~/lab-mon/www/Gemini-Craft/
+rsync -avP --delete ./dist/ ~/lab-mon/www/MatchSolver/
