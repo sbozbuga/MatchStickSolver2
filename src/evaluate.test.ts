@@ -84,4 +84,11 @@ describe('evaluateCharArray', () => {
         const chars = ['1', '+'];
         expect(evaluateCharArray(chars, 0, 2)).toBeNull();
     });
+
+    it('returns null for complex malformed arrays with unmatched operators', () => {
+        const chars = ['1', '+', null, '-'];
+        expect(evaluateCharArray(chars, 0, 4)).toBeNull();
+        expect(evaluateCharArray(chars, 1, 4)).toBeNull();
+        expect(evaluateCharArray(chars, 3, 4)).toBeNull();
+    });
 });
