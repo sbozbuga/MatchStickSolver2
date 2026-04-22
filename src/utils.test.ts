@@ -1,9 +1,8 @@
 import * as evaluator from './evaluate';
-import { evaluateExpression } from './evaluate';
 import { describe, it, expect } from 'vitest';
 import * as utils from './utils';
 import { vi } from 'vitest';
-import { getMoveHighlights, generateRandomPuzzle, getPattern, patternToChar, solveEquation, getEquationChars, findOneMovePermutations } from './utils';
+import { getMoveHighlights, generateRandomPuzzle, getPattern, patternToChar, solveEquation, getEquationChars, findOneMovePermutations, CACHED_PUZZLES } from './utils';
 import { evaluateExpression } from './evaluate';
 import { DIGITS, OPERATORS, EQUALS_SIGN } from './constants';
 
@@ -88,14 +87,14 @@ describe('generateRandomPuzzle', () => {
         // Calling generateRandomPuzzle once ensures CACHED_PUZZLES is initialized.
         generateRandomPuzzle();
 
-        // This is a bit hacky because CACHED_PUZZLES is not exported, but we can infer its length
-        // or just use a very high value for the first call.
-        // 0xFFFFFFFF is always >= limit for any n > 1.
+        // Use the exported CACHED_PUZZLES to calculate a value that is >= limit.
+        const n = CACHED_PUZZLES!.length;
+        const limit = 0x100000000 - (0x100000000 % n);
 
         let callCount = 0;
         spy.mockImplementation((arr) => {
             if (callCount === 0) {
-                (arr as Uint32Array)[0] = 0xFFFFFFFF;
+                (arr as Uint32Array)[0] = limit;
             } else {
                 (arr as Uint32Array)[0] = 0; // index 0
             }
@@ -133,6 +132,8 @@ describe('getPattern', () => {
     it('returns all zeros for invalid inputs', () => {
         const emptyPattern = [0, 0, 0, 0, 0, 0, 0];
         expect(getPattern('a')).toEqual(emptyPattern);
+        expect(getPattern('A')).toEqual(emptyPattern);
+        expect(getPattern('ABC')).toEqual(emptyPattern);
         expect(getPattern('')).toEqual(emptyPattern);
         expect(getPattern(' ')).toEqual(emptyPattern);
         expect(getPattern('11')).toEqual(emptyPattern); // Only single digits are supported by DIGITS[digit]
@@ -228,20 +229,20 @@ describe('findOneMovePermutations', () => {
         findOneMovePermutations('6-4=2', callback);
 
         // Based on local testing, we expect certain permutations like 0-4=2, 9-4=2, 5+4=2, 6-4=3
-        expect(callback).toHaveBeenCalledWith(['0', '-', '4', '=', '2'], -4, 2);
-        expect(callback).toHaveBeenCalledWith(['9', '-', '4', '=', '2'], 5, 2);
-        expect(callback).toHaveBeenCalledWith(['5', '+', '4', '=', '2'], 9, 2);
-        expect(callback).toHaveBeenCalledWith(['6', '-', '4', '=', '3'], 2, 3);
+        expect(callback).toHaveBeenCalledWith('0-4=2', -4, 2);
+        expect(callback).toHaveBeenCalledWith('9-4=2', 5, 2);
+        expect(callback).toHaveBeenCalledWith('5+4=2', 9, 2);
+        expect(callback).toHaveBeenCalledWith('6-4=3', 2, 3);
     });
 
     it('works with multi-digit numbers', () => {
         const callback = vi.fn();
         findOneMovePermutations('1+1=11', callback);
 
-        expect(callback).toHaveBeenCalledWith(['7', '-', '1', '=', '1', '1'], 6, 11);
-        expect(callback).toHaveBeenCalledWith(['1', '-', '7', '=', '1', '1'], -6, 11);
-        expect(callback).toHaveBeenCalledWith(['1', '-', '1', '=', '7', '1'], 0, 71);
-        expect(callback).toHaveBeenCalledWith(['1', '-', '1', '=', '1', '7'], 0, 17);
+        expect(callback).toHaveBeenCalledWith('7-1=11', 6, 11);
+        expect(callback).toHaveBeenCalledWith('1-7=11', -6, 11);
+        expect(callback).toHaveBeenCalledWith('1-1=71', 0, 71);
+        expect(callback).toHaveBeenCalledWith('1-1=17', 0, 17);
     });
 
     it('invokes callback for all permutations including those where leftVal !== rightVal', () => {
@@ -250,9 +251,9 @@ describe('findOneMovePermutations', () => {
 
         // It should find 9 permutations for 0+0=0
         expect(callback).toHaveBeenCalledTimes(9);
-        expect(callback).toHaveBeenCalledWith(['6', '+', '0', '=', '0'], 6, 0);
-        expect(callback).toHaveBeenCalledWith(['8', '-', '0', '=', '0'], 8, 0);
-        expect(callback).toHaveBeenCalledWith(['0', '-', '0', '=', '8'], 0, 8);
+        expect(callback).toHaveBeenCalledWith('6+0=0', 6, 0);
+        expect(callback).toHaveBeenCalledWith('8-0=0', 8, 0);
+        expect(callback).toHaveBeenCalledWith('0-0=8', 0, 8);
     });
 });
 
