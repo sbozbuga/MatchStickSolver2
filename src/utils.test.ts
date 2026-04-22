@@ -132,6 +132,8 @@ describe('getPattern', () => {
     it('returns all zeros for invalid inputs', () => {
         const emptyPattern = [0, 0, 0, 0, 0, 0, 0];
         expect(getPattern('a')).toEqual(emptyPattern);
+        expect(getPattern('A')).toEqual(emptyPattern);
+        expect(getPattern('ABC')).toEqual(emptyPattern);
         expect(getPattern('')).toEqual(emptyPattern);
         expect(getPattern(' ')).toEqual(emptyPattern);
         expect(getPattern('11')).toEqual(emptyPattern); // Only single digits are supported by DIGITS[digit]
