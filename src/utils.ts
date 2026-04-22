@@ -83,7 +83,11 @@ export function patternToChar(
 
 export function findOneMovePermutations(
   equation: string,
-  onPermutationFound: (permutation: string, leftVal: number, rightVal: number) => void,
+  onPermutationFound: (
+    permutation: string,
+    leftVal: number,
+    rightVal: number,
+  ) => void,
 ): void {
   const chars = getEquationChars(equation, false);
   const eqIdx = chars.indexOf("=");
@@ -149,7 +153,11 @@ export function findOneMovePermutations(
                       finalLeftVal !== null &&
                       finalRightVal !== null
                     ) {
-                      onPermutationFound(testChars.join(""), leftVal, rightVal);
+                      onPermutationFound(
+                        testChars.join(""),
+                        finalLeftVal,
+                        finalRightVal,
+                      );
                     }
                   }
                 }
@@ -191,7 +199,7 @@ export const solveEquation = (equation: string): string[] => {
   return Array.from(solutions);
 };
 
-let CACHED_PUZZLES: string[] | null = null;
+export let CACHED_PUZZLES: string[] | null = null;
 
 export const generateRandomPuzzle = (): string => {
   if (!CACHED_PUZZLES) {
