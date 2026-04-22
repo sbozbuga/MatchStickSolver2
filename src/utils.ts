@@ -149,7 +149,11 @@ export function findOneMovePermutations(
                       finalLeftVal !== null &&
                       finalRightVal !== null
                     ) {
-                      onPermutationFound(testChars.join(""), leftVal, rightVal);
+                      onPermutationFound(
+                        testChars.join(""),
+                        finalLeftVal,
+                        finalRightVal,
+                      );
                     }
                   }
                 }
