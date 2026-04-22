@@ -83,7 +83,7 @@ export function patternToChar(
 
 export function findOneMovePermutations(
   equation: string,
-  onPermutationFound: (permutation: string, leftVal: number, rightVal: number) => void,
+  onPermutationFound: (permutation: (string | null)[], leftVal: number, rightVal: number) => void,
 ): void {
   const chars = getEquationChars(equation, false);
   const eqIdx = chars.indexOf("=");
@@ -94,8 +94,33 @@ export function findOneMovePermutations(
   );
   let nullCount = testChars.filter((c) => c === null).length;
 
-  const initialLeftVal = evaluateCharArray(testChars, 0, eqIdx);
-  const initialRightVal = evaluateCharArray(testChars, eqIdx + 1, testChars.length);
+  const leftCache = new Map<string, number | null>();
+  const rightCache = new Map<string, number | null>();
+
+  const getLeftVal = (chars: (string | null)[]) => {
+    let key = "";
+    for (let idx = 0; idx < eqIdx; idx++) {
+      key += chars[idx] === null ? "null" : chars[idx];
+    }
+    if (leftCache.has(key)) return leftCache.get(key)!;
+    const val = evaluateCharArray(chars, 0, eqIdx);
+    leftCache.set(key, val);
+    return val;
+  };
+
+  const getRightVal = (chars: (string | null)[]) => {
+    let key = "";
+    for (let idx = eqIdx + 1; idx < chars.length; idx++) {
+      key += chars[idx] === null ? "null" : chars[idx];
+    }
+    if (rightCache.has(key)) return rightCache.get(key)!;
+    const val = evaluateCharArray(chars, eqIdx + 1, chars.length);
+    rightCache.set(key, val);
+    return val;
+  };
+
+  const initialLeftVal = getLeftVal(testChars);
+  const initialRightVal = getRightVal(testChars);
 
   for (let i = 0; i < patterns.length; i++) {
     for (let j = 0; j < 7; j++) {
@@ -112,9 +137,9 @@ export function findOneMovePermutations(
         let currentRightVal = initialRightVal;
 
         if (i < eqIdx) {
-          currentLeftVal = evaluateCharArray(testChars, 0, eqIdx);
+          currentLeftVal = getLeftVal(testChars);
         } else if (i > eqIdx) {
-          currentRightVal = evaluateCharArray(testChars, eqIdx + 1, testChars.length);
+          currentRightVal = getRightVal(testChars);
         }
 
         for (let k = 0; k < patterns.length; k++) {
@@ -140,16 +165,16 @@ export function findOneMovePermutations(
                     let finalRightVal = currentRightVal;
 
                     if (k < eqIdx) {
-                      finalLeftVal = evaluateCharArray(testChars, 0, eqIdx);
+                      finalLeftVal = getLeftVal(testChars);
                     } else if (k > eqIdx) {
-                      finalRightVal = evaluateCharArray(testChars, eqIdx + 1, testChars.length);
+                      finalRightVal = getRightVal(testChars);
                     }
 
                     if (
                       finalLeftVal !== null &&
                       finalRightVal !== null
                     ) {
-                      onPermutationFound(testChars.join(""), leftVal, rightVal);
+                      onPermutationFound([...testChars], finalLeftVal, finalRightVal);
                     }
                   }
                 }
@@ -184,7 +209,7 @@ export const solveEquation = (equation: string): string[] => {
 
   findOneMovePermutations(equation, (permutation, leftVal, rightVal) => {
     if (leftVal === rightVal) {
-      solutions.add(permutation);
+      solutions.add(permutation.join(""));
     }
   });
 
@@ -216,7 +241,7 @@ export const generateRandomPuzzle = (): string => {
       findOneMovePermutations(eq, (permutation, leftVal, rightVal) => {
         // It MUST evaluate falsely explicitly so it operates as a puzzle and not an identical solved clone natively
         if (leftVal !== rightVal) {
-          ALL_PUZZLES.add(permutation);
+          ALL_PUZZLES.add(permutation.join(""));
         }
       });
     }
