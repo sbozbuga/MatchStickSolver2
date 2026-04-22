@@ -38,11 +38,6 @@ function coreEvaluate(length: number, getCharCode: (index: number) => number): n
     return result + (currentOp * currentNum);
 }
 
-export function evaluateExpression(expr: string): number | null {
-    if (!expr) return null;
-    return coreEvaluate(expr.length, (i) => expr.charCodeAt(i));
-}
-
 export function evaluateCharArray(
     chars: (string | null)[],
     start: number,

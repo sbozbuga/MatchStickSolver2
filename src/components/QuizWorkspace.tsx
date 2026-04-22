@@ -105,7 +105,7 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({
       return;
     }
 
-    // Optimization: avoid split("=") and evaluateExpression string allocations
+    // Optimization: avoid split("=") and evaluateCharArray string allocations
     const eqIdx = originalEquation.indexOf("=");
     if (eqIdx !== -1) {
       const leftVal = evaluateCharArray(currentChars, 0, eqIdx);
