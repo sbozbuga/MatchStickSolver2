@@ -82,20 +82,16 @@ describe('generateRandomPuzzle', () => {
     it('implements rejection sampling to avoid modulo bias', () => {
         const spy = vi.spyOn(crypto, 'getRandomValues');
 
-        // Mocking crypto.getRandomValues to first return a value that should be rejected,
-        // and then a value that should be accepted.
-        // We need to know CACHED_PUZZLES.length to calculate a value that is >= limit.
         // Calling generateRandomPuzzle once ensures CACHED_PUZZLES is initialized.
         generateRandomPuzzle();
 
-        // This is a bit hacky because CACHED_PUZZLES is not exported, but we can infer its length
-        // or just use a very high value for the first call.
-        // 0xFFFFFFFF is always >= limit for any n > 1.
+        const n = utils.CACHED_PUZZLES!.length;
+        const limit = 0x100000000 - (0x100000000 % n);
 
         let callCount = 0;
         spy.mockImplementation((arr) => {
             if (callCount === 0) {
-                (arr as Uint32Array)[0] = 0xFFFFFFFF;
+                (arr as Uint32Array)[0] = limit;
             } else {
                 (arr as Uint32Array)[0] = 0; // index 0
             }

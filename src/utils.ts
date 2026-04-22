@@ -180,7 +180,7 @@ export function findOneMovePermutations(
                       finalLeftVal !== null &&
                       finalRightVal !== null
                     ) {
-                      onPermutationFound([...testChars], leftVal, rightVal);
+                      onPermutationFound([...testChars], finalLeftVal, finalRightVal);
                     }
                   }
                 }
@@ -222,7 +222,7 @@ export const solveEquation = (equation: string): string[] => {
   return Array.from(solutions);
 };
 
-let CACHED_PUZZLES: string[] | null = null;
+export let CACHED_PUZZLES: string[] | null = null;
 
 export const generateRandomPuzzle = (): string => {
   if (!CACHED_PUZZLES) {
