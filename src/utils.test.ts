@@ -1,9 +1,8 @@
 import * as evaluator from './evaluate';
-import { evaluateExpression } from './evaluate';
 import { describe, it, expect } from 'vitest';
 import * as utils from './utils';
 import { vi } from 'vitest';
-import { getMoveHighlights, generateRandomPuzzle, getPattern, patternToChar, solveEquation, getEquationChars, findOneMovePermutations } from './utils';
+import { getMoveHighlights, generateRandomPuzzle, getPattern, patternToChar, solveEquation, getEquationChars, findOneMovePermutations, CACHED_PUZZLES } from './utils';
 import { evaluateExpression } from './evaluate';
 import { DIGITS, OPERATORS, EQUALS_SIGN } from './constants';
 
@@ -88,14 +87,14 @@ describe('generateRandomPuzzle', () => {
         // Calling generateRandomPuzzle once ensures CACHED_PUZZLES is initialized.
         generateRandomPuzzle();
 
-        // This is a bit hacky because CACHED_PUZZLES is not exported, but we can infer its length
-        // or just use a very high value for the first call.
-        // 0xFFFFFFFF is always >= limit for any n > 1.
+        // Use the exported CACHED_PUZZLES to calculate a value that is >= limit.
+        const n = CACHED_PUZZLES!.length;
+        const limit = 0x100000000 - (0x100000000 % n);
 
         let callCount = 0;
         spy.mockImplementation((arr) => {
             if (callCount === 0) {
-                (arr as Uint32Array)[0] = 0xFFFFFFFF;
+                (arr as Uint32Array)[0] = limit;
             } else {
                 (arr as Uint32Array)[0] = 0; // index 0
             }
