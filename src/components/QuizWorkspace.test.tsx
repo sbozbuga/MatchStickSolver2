@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { QuizWorkspace } from './QuizWorkspace';
 import * as utils from '../utils';
 
@@ -187,6 +187,29 @@ describe('QuizWorkspace', () => {
 
             expect(mockWriteText).not.toHaveBeenCalled();
             expect(await screen.findByText('Failed!')).toBeInTheDocument();
+        });
+
+        it('resets the copy error UI after 2 seconds when navigator.clipboard.writeText fails', async () => {
+            vi.useFakeTimers({ shouldAdvanceTime: true });
+            mockWriteText.mockRejectedValueOnce(new Error('Clipboard error'));
+
+            render(<QuizWorkspace />);
+            const copyButton = screen.getByText('Copy');
+
+            fireEvent.click(copyButton);
+
+            await waitFor(() => {
+                expect(screen.getByText('Failed!')).toBeInTheDocument();
+            });
+
+            act(() => {
+                vi.advanceTimersByTime(2000);
+            });
+
+            expect(screen.getByText('Copy')).toBeInTheDocument();
+            expect(screen.queryByText('Failed!')).not.toBeInTheDocument();
+
+            vi.useRealTimers();
         });
     });
 });
