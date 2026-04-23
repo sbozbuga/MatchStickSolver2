@@ -359,13 +359,7 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({
             if (segmentIndex === 3) d = "M 15 40 H 35"; // Horizontal
             if (segmentIndex === 1) d = "M 25 30 V 50"; // Vertical
 
-            const classes = [
-              "transition-opacity cursor-pointer",
-              isActive ? "opacity-100" : "opacity-10",
-              isHovered ? "text-amber-200 opacity-50" : "",
-            ]
-              .filter(Boolean)
-              .join(" ");
+            const classes = `transition-opacity cursor-pointer ${isActive ? "opacity-100" : "opacity-10"}${isHovered ? " text-amber-200 opacity-50" : ""}`;
 
             return (
               <g key={segmentIndex}>
@@ -417,13 +411,7 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({
             hoverTarget?.charIndex === charIndex &&
             hoverTarget?.segmentIndex === segmentIndex;
 
-          const classes = [
-            "transition-opacity cursor-pointer",
-            isActive ? "opacity-100" : "opacity-10",
-            isHovered ? "text-amber-200 opacity-50" : "",
-          ]
-            .filter(Boolean)
-            .join(" ");
+          const classes = `transition-opacity cursor-pointer ${isActive ? "opacity-100" : "opacity-10"}${isHovered ? " text-amber-200 opacity-50" : ""}`;
 
           return (
             <g key={seg.key}>
