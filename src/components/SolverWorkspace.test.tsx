@@ -105,4 +105,24 @@ describe('SolverWorkspace', () => {
     // "No solutions" message should NOT be displayed
     expect(screen.queryAllByText('No 1-stick solutions found.').length).toBe(0);
   });
+
+  it('filters out invalid characters from input', async () => {
+    render(<SolverWorkspace />);
+
+    const input = screen.getByPlaceholderText('e.g. 6+4=4') as HTMLInputElement;
+
+    // Initial value
+    expect(input.value).toBe('6+4=4');
+
+    // Try to enter invalid characters
+    fireEvent.change(input, { target: { value: '6+4=4abc!@#' } });
+
+    // Value should remain unchanged (or not include invalid chars if it was partially accepted,
+    // but our regex checks the whole string, so it should be rejected entirely if not matching)
+    expect(input.value).toBe('6+4=4');
+
+    // Try to enter valid characters
+    fireEvent.change(input, { target: { value: '1+2=3' } });
+    expect(input.value).toBe('1+2=3');
+  });
 });
