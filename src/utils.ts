@@ -53,32 +53,37 @@ export function getPattern(char: string | number): SegmentPattern {
   return [0, 0, 0, 0, 0, 0, 0];
 }
 
-function isMatch(p1: SegmentPattern, p2: SegmentPattern): boolean {
-  for (let i = 0; i < 7; i++) {
-    if (p1[i] !== p2[i]) return false;
-  }
-  return true;
+function patternToMask(p: SegmentPattern): number {
+  return (
+    p[0] |
+    (p[1] << 1) |
+    (p[2] << 2) |
+    (p[3] << 3) |
+    (p[4] << 4) |
+    (p[5] << 5) |
+    (p[6] << 6)
+  );
 }
+
+const EQUALS_MASK = patternToMask(EQUALS_SIGN);
+const MASK_TO_CHAR: (string | null)[] = new Array(128).fill(null);
+
+for (let i = 0; i <= 9; i++) {
+  MASK_TO_CHAR[patternToMask(DIGITS[i])] = i.toString();
+}
+MASK_TO_CHAR[patternToMask(OPERATORS["+"])] = "+";
+MASK_TO_CHAR[patternToMask(OPERATORS["-"])] = "-";
 
 export function patternToChar(
   pattern: SegmentPattern,
   originalChar: string,
 ): string | null {
+  const mask = patternToMask(pattern);
   if (originalChar === "=") {
-    if (isMatch(pattern, EQUALS_SIGN)) return "=";
-    return null;
+    return mask === EQUALS_MASK ? "=" : null;
   }
 
-  // Check digits
-  for (let i = 0; i <= 9; i++) {
-    if (isMatch(pattern, DIGITS[i])) return i.toString();
-  }
-
-  // Check operators
-  if (isMatch(pattern, OPERATORS["+"])) return "+";
-  if (isMatch(pattern, OPERATORS["-"])) return "-";
-
-  return null;
+  return MASK_TO_CHAR[mask];
 }
 
 export function findOneMovePermutations(
