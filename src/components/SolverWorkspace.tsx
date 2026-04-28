@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import type { SegmentPattern } from '../types';
-import { EqualsSign } from './EqualsSign';
+import { SegmentDisplay } from './SegmentDisplay';
 import { getPattern, patternToChar, solveEquation, generateRandomPuzzle } from '../utils';
 
 const StaticEquation: React.FC<{ equation: string, originalEquation?: string }> = ({ equation, originalEquation }) => {
@@ -12,68 +12,13 @@ const StaticEquation: React.FC<{ equation: string, originalEquation?: string }> 
         const pattern = getPattern(char);
         const originalPattern = getPattern(originalChar);
 
-        if (char === '=') {
-            return <EqualsSign size={size} />;
-        }
-
-        if (char === '+' || char === '-') {
-            return (
-                <svg viewBox="0 0 50 80" style={size} className="stroke-current" strokeWidth="4" strokeLinecap="round">
-                    {[1, 3].map(segmentIndex => {
-                        const isActive = pattern[segmentIndex] === 1;
-                        const wasActive = originalPattern[segmentIndex] === 1;
-
-                        let d = "";
-                        if (segmentIndex === 3) d = "M 15 40 H 35";
-                        if (segmentIndex === 1) d = "M 25 30 V 50";
-
-                        let colorClass = "text-amber-400";
-                        if (isActive && !wasActive) colorClass = "text-emerald-400"; // Added stick
-                        if (!isActive && wasActive) colorClass = "text-rose-500 opacity-30"; // Removed stick
-                        if (!isActive && !wasActive) return null;
-
-                        return (
-                            <path
-                                key={segmentIndex}
-                                d={d}
-                                className={`transition-opacity ${colorClass} ${isActive ? 'opacity-100' : ''}`}
-                            />
-                        );
-                    })}
-                </svg>
-            );
-        }
-
-        const segments = [
-            { key: 'top', d: "M 10 10 H 40" },
-            { key: 'top-left', d: "M 10 10 V 40" },
-            { key: 'top-right', d: "M 40 10 V 40" },
-            { key: 'middle', d: "M 10 40 H 40" },
-            { key: 'bot-left', d: "M 10 40 V 70" },
-            { key: 'bot-right', d: "M 40 40 V 70" },
-            { key: 'bottom', d: "M 10 70 H 40" },
-        ];
-
         return (
-            <svg viewBox="0 0 50 80" style={size} className="stroke-current" strokeWidth="4" strokeLinecap="round">
-                {segments.map((seg, segmentIndex) => {
-                    const isActive = pattern[segmentIndex] === 1;
-                    const wasActive = originalPattern[segmentIndex] === 1;
-
-                    let colorClass = "text-amber-400";
-                    if (isActive && !wasActive) colorClass = "text-emerald-400"; // Added stick
-                    if (!isActive && wasActive) colorClass = "text-rose-500 opacity-30"; // Removed stick
-                    if (!isActive && !wasActive) return null;
-
-                    return (
-                        <path
-                            key={seg.key}
-                            d={seg.d}
-                            className={`transition-opacity ${colorClass} ${isActive ? 'opacity-100' : ''}`}
-                        />
-                    );
-                })}
-            </svg>
+            <SegmentDisplay
+                char={char}
+                pattern={pattern}
+                size={size}
+                originalPattern={originalPattern}
+            />
         );
     };
 

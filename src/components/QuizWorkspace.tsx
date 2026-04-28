@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Copy, Check, XCircle } from "lucide-react";
 import type { SegmentPattern } from "../types";
-import { EqualsSign } from "./EqualsSign";
+import { SegmentDisplay } from "./SegmentDisplay";
 import { getPattern, patternToChar, generateRandomPuzzle } from "../utils";
 import { evaluateCharArray } from "../evaluate";
 
@@ -335,106 +335,19 @@ export const QuizWorkspace: React.FC<QuizWorkspaceProps> = ({
   ) => {
     const size = { width: 72, height: 115.2 };
 
-    if (char === "=") {
-      return <EqualsSign size={size} />;
-    }
-
-    // For + and -, we only render segments 1 and 3, using the centered plus sign coordinates
-    if (char === "+" || char === "-") {
-      return (
-        <svg
-          viewBox="0 0 50 80"
-          style={size}
-          className="stroke-current text-amber-400"
-          strokeWidth="4"
-          strokeLinecap="round"
-        >
-          {[3, 1].map((segmentIndex) => {
-            const isActive = pattern[segmentIndex] === 1;
-            const isHovered =
-              hoverTarget?.charIndex === charIndex &&
-              hoverTarget?.segmentIndex === segmentIndex;
-
-            let d = "";
-            if (segmentIndex === 3) d = "M 15 40 H 35"; // Horizontal
-            if (segmentIndex === 1) d = "M 25 30 V 50"; // Vertical
-
-            const classes = `transition-opacity cursor-pointer ${isActive ? "opacity-100" : "opacity-10"}${isHovered ? " text-amber-200 opacity-50" : ""}`;
-
-            return (
-              <g key={segmentIndex}>
-                <path
-                  d={d}
-                  stroke="transparent"
-                  strokeWidth="8"
-                  onPointerDown={(e) =>
-                    handlePointerDown(charIndex, segmentIndex, e)
-                  }
-                  data-char-index={charIndex}
-                  data-segment-index={segmentIndex}
-                  style={{ pointerEvents: "auto" }}
-                />
-                <path
-                  d={d}
-                  className={classes}
-                  style={{ pointerEvents: "none" }}
-                />
-              </g>
-            );
-          })}
-        </svg>
-      );
-    }
-
-    // Standard 7-segment display for digits
-    const segments = [
-      { key: "top", d: "M 10 10 H 40" },
-      { key: "top-left", d: "M 10 10 V 40" },
-      { key: "top-right", d: "M 40 10 V 40" },
-      { key: "middle", d: "M 10 40 H 40" },
-      { key: "bot-left", d: "M 10 40 V 70" },
-      { key: "bot-right", d: "M 40 40 V 70" },
-      { key: "bottom", d: "M 10 70 H 40" },
-    ];
-
     return (
-      <svg
-        viewBox="0 0 50 80"
-        style={size}
-        className="stroke-current text-amber-400"
-        strokeWidth="4"
-        strokeLinecap="round"
-      >
-        {segments.map((seg, segmentIndex) => {
-          const isActive = pattern[segmentIndex] === 1;
-          const isHovered =
-            hoverTarget?.charIndex === charIndex &&
-            hoverTarget?.segmentIndex === segmentIndex;
-
-          const classes = `transition-opacity cursor-pointer ${isActive ? "opacity-100" : "opacity-10"}${isHovered ? " text-amber-200 opacity-50" : ""}`;
-
-          return (
-            <g key={seg.key}>
-              <path
-                d={seg.d}
-                stroke="transparent"
-                strokeWidth="8"
-                onPointerDown={(e) =>
-                  handlePointerDown(charIndex, segmentIndex, e)
-                }
-                data-char-index={charIndex}
-                data-segment-index={segmentIndex}
-                style={{ pointerEvents: "auto" }}
-              />
-              <path
-                d={seg.d}
-                className={classes}
-                style={{ pointerEvents: "none" }}
-              />
-            </g>
-          );
-        })}
-      </svg>
+      <SegmentDisplay
+        char={char}
+        pattern={pattern}
+        size={size}
+        dataCharIndex={charIndex}
+        hoveredSegmentIndex={
+          hoverTarget?.charIndex === charIndex ? hoverTarget.segmentIndex : null
+        }
+        onSegmentPointerDown={(segmentIndex, e) =>
+          handlePointerDown(charIndex, segmentIndex, e)
+        }
+      />
     );
   };
 
